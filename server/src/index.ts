@@ -1,17 +1,18 @@
-import { createServer } from 'node:http';
-import { MAX_PLAYERS, MIN_PLAYERS } from '@drawtopia/shared';
+import { config } from './config';
+import { createGameServer } from './createGameServer';
 
-const PORT = Number(process.env.PORT ?? 3001);
+const server = createGameServer({ corsOrigin: config.corsOrigin });
 
-const httpServer = createServer((req, res) => {
-  if (req.url === '/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ ok: true, players: { min: MIN_PLAYERS, max: MAX_PLAYERS } }));
-    return;
-  }
-  res.writeHead(404).end();
+server.httpServer.listen(config.port, () => {
+  console.info(`DrawTopia server listening on http://localhost:${config.port}`);
 });
 
-httpServer.listen(PORT, () => {
-  console.log(`DrawTopia server listening on http://localhost:${PORT}`);
-});
+const shutdown = (signal: string) => {
+  console.info(`${signal} received, closing server`);
+  server.close().then(
+    () => process.exit(0),
+    () => process.exit(1),
+  );
+};
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));

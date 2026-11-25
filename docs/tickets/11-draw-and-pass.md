@@ -13,3 +13,7 @@
 ## Acceptance criteria
 - [ ] Rotation tests for N = 3..8: each chain visits every player exactly once.
 - [ ] A full 3-player game ends on the reveal, on the emulator + 2 phones.
+
+## Notes (done)
+- Rotation rule in `shared/src/rules/pass.ts`, tested for 3–8 players; engine in `server/src/game/DrawPassGame.ts`.
+- Verified on the emulator with 2 scripted players: write → draw → describe, then the animated chain reveal.

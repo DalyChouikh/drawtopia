@@ -14,8 +14,8 @@ exam (M1–M8 requirements, Q1–Q8 report questions).
 | 07 | [Profile, settings and connection state](07-profile-settings.md) | 06 | M5, M7, Q5, Q7 | done |
 | 08 | [Create / join / browse rooms + lobby](08-lobby-flow.md) | 05, 07 | M2, M3, Q4, Q6 | done |
 | 09 | [Drawing canvas (Skia)](09-canvas.md) | 06 | M3, M6, Q1 | done |
-| 10 | [Draw & Guess game loop](10-draw-and-guess.md) | 03, 04, 08, 09 | M3, M4 | todo |
-| 11 | [Draw & Pass game loop](11-draw-and-pass.md) | 08, 09 | M3, M4 | todo |
+| 10 | [Draw & Guess game loop](10-draw-and-guess.md) | 03, 04, 08, 09 | M3, M4 | done |
+| 11 | [Draw & Pass game loop](11-draw-and-pass.md) | 08, 09 | M3, M4 | done |
 | 12 | [Results and local game history](12-history.md) | 10, 11 | M3, M7 | todo |
 | 13 | [Motion and polish](13-polish.md) | 10, 11 | M6 | todo |
 | 14 | [Deploy server (Render)](14-deploy.md) | 05 | demo, C | todo |

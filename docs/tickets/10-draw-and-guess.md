@@ -17,3 +17,9 @@
 ## Acceptance criteria
 - [ ] A full 3-player game reaches the podium on the emulator + 2 phones.
 - [ ] A typo guess shows the close notice; the secret word never reaches a non-drawer's device.
+
+## Notes (done)
+- Strokes are relayed when the drawer lifts the finger (not point by point); good enough on LAN, keeps messages small.
+- Server sends each player a personalized view (`game:state`) on a private `player:<id>` channel; the word never
+  leaves the server except to the drawer (checked by an integration test).
+- Verified on the emulator with 2 scripted players: word choice, hints, close/correct notices, scoring, podium.

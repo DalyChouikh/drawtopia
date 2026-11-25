@@ -38,6 +38,9 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "serverUrl": "https://drawtopia-server-wbk7.onrender.com"
     }
   }
 }

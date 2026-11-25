@@ -5,16 +5,23 @@ import { persistentStorage, storageKey } from './storage';
 
 const SERVER_PORT = 3001;
 
+/** The deployed server (Render), from app.json `extra.serverUrl`. */
+export const ONLINE_SERVER_URL = Constants.expoConfig?.extra?.serverUrl as string | undefined;
+
+/** The game server running on the computer that serves the app in development (Metro host). */
+export function lanServerUrl(): string {
+  const devHost = Constants.expoConfig?.hostUri?.split(':')[0] ?? 'localhost';
+  return `http://${devHost}:${SERVER_PORT}`;
+}
+
 /**
  * Default game server: in development, the computer running Metro (same machine as the
  * server, reachable from the emulator and from phones on the same Wi-Fi).
- * Otherwise the deployed server URL from app.json `extra.serverUrl`.
+ * In a real build, the deployed online server.
  */
 export function defaultServerUrl(): string {
-  const configured = Constants.expoConfig?.extra?.serverUrl as string | undefined;
-  const devHost = Constants.expoConfig?.hostUri?.split(':')[0];
-  if (__DEV__ && devHost) return `http://${devHost}:${SERVER_PORT}`;
-  return configured ?? `http://localhost:${SERVER_PORT}`;
+  if (__DEV__ && Constants.expoConfig?.hostUri) return lanServerUrl();
+  return ONLINE_SERVER_URL ?? lanServerUrl();
 }
 
 interface SettingsState {

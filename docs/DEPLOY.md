@@ -3,6 +3,15 @@
 The app works on a local network without any deployment (see README). Deploying the server lets phones play
 from anywhere (mobile data, a university Wi-Fi that blocks device-to-device traffic).
 
+## Live server
+
+- URL: **https://drawtopia-server-wbk7.onrender.com** (health: `/health`)
+- Deployed on 25/11/2026 from `render.yaml` with the Render plugin (Blueprint `drawtopia`, region Frankfurt, free plan).
+- Checked after deploy: 3 Socket.IO clients over `wss://` played a Draw & Guess turn (word hidden from guessers,
+  stroke relayed in ~91 ms, close and correct guesses scored), and the Android app created a room on it.
+- In the app: **Settings → Online server** (one tap), or it is the default in a standalone build
+  (`app.json` → `extra.serverUrl`). In development the default stays the computer running Metro.
+
 ## What is already prepared
 
 - `render.yaml` (Render Blueprint): one free web service in Frankfurt.

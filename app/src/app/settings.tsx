@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
+import { Chip } from '../components/ui/Chip';
 import { InkButton } from '../components/ui/InkButton';
 import { InkCard } from '../components/ui/InkCard';
 import { InkInput } from '../components/ui/InkInput';
@@ -7,7 +8,13 @@ import { Screen } from '../components/ui/Screen';
 import { Txt } from '../components/ui/Txt';
 import { useConnectionStore } from '../services/connectionStore';
 import { haptics } from '../services/haptics';
-import { defaultServerUrl, useSettingsStore, validateServerUrl } from '../stores/settingsStore';
+import {
+  defaultServerUrl,
+  lanServerUrl,
+  ONLINE_SERVER_URL,
+  useSettingsStore,
+  validateServerUrl,
+} from '../stores/settingsStore';
 import { showToast } from '../stores/toastStore';
 import { colors } from '../theme/tokens';
 
@@ -35,6 +42,7 @@ export default function SettingsScreen() {
   const [testing, setTesting] = useState(false);
 
   const effectiveUrl = url.trim() || defaultServerUrl();
+  const onlineUrl = ONLINE_SERVER_URL;
 
   const save = () => {
     const problem = validateServerUrl(url);
@@ -80,6 +88,26 @@ export default function SettingsScreen() {
             error={error}
             hint="Leave empty to use the default server."
           />
+          <View style={styles.row} accessibilityRole="radiogroup" accessibilityLabel="Quick pick">
+            {onlineUrl && (
+              <Chip
+                label="Online server"
+                selected={effectiveUrl === onlineUrl}
+                onPress={() => {
+                  setUrl(onlineUrl);
+                  setError(null);
+                }}
+              />
+            )}
+            <Chip
+              label="This computer"
+              selected={effectiveUrl === lanServerUrl()}
+              onPress={() => {
+                setUrl(lanServerUrl() === defaultServerUrl() ? '' : lanServerUrl());
+                setError(null);
+              }}
+            />
+          </View>
           <Txt variant="caption">
             Status:{' '}
             {status === 'online'

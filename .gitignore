@@ -20,3 +20,10 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Teacher approval: copied into the exam ZIP, never published
+validation/*
+!validation/README.md
+
+# Exam ZIP output
+dist/

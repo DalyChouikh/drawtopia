@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>DrawTopia — Rapport technique</title>
+<style>
+  @page { size: A4; margin: 18mm 17mm 18mm 17mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #1A1A1A; }
+  h1 { font-size: 20pt; margin: 0 0 4mm; }
+  h2 { font-size: 14pt; margin: 7mm 0 2.5mm; padding-bottom: 1mm; border-bottom: 2.5px solid #1A1A1A; break-after: avoid; }
+  h3 { font-size: 11.5pt; margin: 4.5mm 0 1.5mm; break-after: avoid; }
+  p { margin: 1.5mm 0; text-align: justify; }
+  ul { margin: 1mm 0 1.5mm 5mm; padding-left: 3mm; }
+  li { margin: 0.6mm 0; }
+  table { width: 100%; border-collapse: collapse; margin: 2mm 0 3mm; font-size: 9.2pt; break-inside: avoid; }
+  th, td { border: 1px solid #1A1A1A; padding: 1.3mm 1.8mm; vertical-align: top; text-align: left; }
+  th { background: #FFD23F; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 8.8pt; background: #F1EDE3; padding: 0 1px; }
+  pre { font-family: Consolas, "Courier New", monospace; font-size: 8.3pt; line-height: 1.35; background: #FBF7EE;
+        border: 1.5px solid #1A1A1A; border-left: 5px solid #3D7BFF; padding: 2mm 3mm; margin: 1.5mm 0 2.5mm;
+        white-space: pre-wrap; break-inside: avoid; }
+  .file { font-size: 8.8pt; color: #4A463E; margin-top: 2mm; }
+  .cover { height: 255mm; display: flex; flex-direction: column; justify-content: center; break-after: page; }
+  .cover img { width: 120mm; margin-bottom: 8mm; }
+  .cover table { font-size: 10.5pt; }
+  .cover th { width: 52mm; }
+  .shots { display: flex; gap: 4mm; justify-content: center; margin: 2mm 0 1mm; break-inside: avoid; }
+  .shots figure { margin: 0; text-align: center; font-size: 8.5pt; width: 41mm; }
+  .shots img { width: 41mm; border: 1.5px solid #1A1A1A; border-radius: 3mm; }
+  .q { break-inside: avoid; }
+  .note { font-size: 9pt; color: #4A463E; }
+  .page-break { break-before: page; }
+  svg text { font-family: "Segoe UI", Arial, sans-serif; }
+</style>
+</head>
+<body>
+
+<!-- ───────────────────────── Page de garde ───────────────────────── -->
+<section class="cover">
+  <img src="../../brand/final/export/lockup-horizontal-colour.png" alt="DrawTopia">
+  <h1>Rapport technique — Mini-projet d'application mobile</h1>
+  <p style="margin-bottom:6mm">Institut Supérieur des Sciences Appliquées et de Technologie de Sousse</p>
+  <table>
+    <tr><th>Titre du projet</th><td>DrawTopia — jeu de dessin multijoueur</td></tr>
+    <tr><th>Étudiant / groupe</th><td>Mohamed Ali Chouikh — ING-A3-04</td></tr>
+    <tr><th>Technologie et plateforme</th><td>React Native (Expo SDK 58, TypeScript) — Android et iOS · serveur Node.js + Socket.IO</td></tr>
+    <tr><th>Date / référence de validation</th><td><b>[à compléter : date et référence de l'accord « VALIDÉ »]</b></td></tr>
+    <tr><th>Version finale</th><td>1.0 — dépôt <code>github.com/DalyChouikh/drawtopia</code>, branche <code>main</code></td></tr>
+  </table>
+</section>
+
+<!-- ───────────────────────── 1. Présentation ───────────────────────── -->
+<h2>1. Fiche projet et périmètre approuvé</h2>
+<p><b>Bénéficiaires et besoin.</b> Des amis qui veulent jouer ensemble à un jeu créatif, à distance ou dans la
+même pièce. Les jeux « dessiner et deviner » et « téléphone dessiné » existent séparément ; DrawTopia réunit les
+deux dans une même application, avec des salons publics ou privés et un simple pseudonyme (pas de compte).</p>
+<p><b>Objectifs mesurables.</b> (1) une partie à 3 joueurs se joue de bout en bout sur téléphone ; (2) un dessin
+apparaît chez les autres joueurs en moins de 150 ms sur le même réseau (mesuré : ≈ 91 ms via le serveur en ligne
+à Francfort) ; (3) une faute de frappe proche du mot est signalée « close » ; (4) profil et historique survivent
+à la fermeture de l'application ; (5) au moins 6 tests documentés dont 2 négatifs (ici 6 scénarios + 84 tests
+automatiques).</p>
+
+<table>
+  <tr><th style="width:24%">Fonction</th><th>Règle métier (entrée → traitement → résultat)</th><th style="width:12%">Statut</th></tr>
+  <tr><td>Action 1 — Créer un salon public/privé ou en rejoindre un</td>
+      <td>Pseudo + réglages → le serveur génère un code libre de 4 caractères (sans 0/O/1/I), vérifie salon
+      existant, non démarré, &lt; 8 joueurs, pseudo unique (sans tenir compte de la casse) → lobby partagé en direct.</td><td>Réalisé</td></tr>
+  <tr><td>Action 2 — Choisir le mode et la durée des tours</td>
+      <td>Mode (Draw &amp; Guess / Draw &amp; Pass), 30/60/90 s, 1–5 tours → seul l'hôte peut modifier ; démarrage
+      refusé sous 3 joueurs connectés → tous les écrans passent au jeu.</td><td>Réalisé</td></tr>
+  <tr><td>Action 3 — Dessiner, deviner ou écrire</td>
+      <td>Dessin → traits normalisés (0..1), simplifiés, relayés. Proposition → normalisation, distance d'édition
+      bornée → <i>correct</i> (points selon la vitesse), <i>close</i> (annonce) ou <i>wrong</i>. Draw &amp; Pass :
+      le joueur <i>i</i> travaille sur la chaîne (<i>i</i> + étape) mod <i>N</i>.</td><td>Réalisé</td></tr>
+  <tr><td>Action 4 — Consulter scores / chaînes</td>
+      <td>Fin de partie → classement avec ex æquo (1, 1, 3) ou révélation animée des chaînes → enregistré dans
+      l'historique du téléphone (20 parties max), consultable hors ligne, supprimable.</td><td>Réalisé</td></tr>
+</table>
+<p><b>Demandé / réalisé / non réalisé.</b> Tout le périmètre de la fiche est réalisé. Ajouts : historique local,
+indices de lettres, reconnexion automatique, serveur déployé (Render). Non réalisé : transmission du dessin point
+par point (le trait est envoyé quand le doigt se lève) ; application installable sur l'App Store (test via Expo Go).</p>
+
+<div class="shots">
+  <figure><img src="../../captures/01-home.png" alt=""><figcaption>Accueil (action 1)</figcaption></figure>
+  <figure><img src="../../captures/02-lobby-live-players.png" alt=""><figcaption>Lobby : code, hôte, joueurs en direct</figcaption></figure>
+  <figure><img src="../../captures/06-guesser-close-and-guessed.png" alt=""><figcaption>Partie : indice, « close », « guessed »</figcaption></figure>
+  <figure><img src="../../captures/10-pass-chain-reveal.png" alt=""><figcaption>Révélation d'une chaîne (action 4)</figcaption></figure>
+</div>
+
+<!-- ───────────────────────── 2. Architecture ───────────────────────── -->
+<h2>2. Architecture, modèles et navigation</h2>
+<p>Le dépôt est un monorepo <b>npm workspaces</b> en trois parties : <code>app/</code> (client Expo),
+<code>server/</code> (serveur Socket.IO) et <code>shared/</code> (types, validations et règles du jeu importés par
+les deux). Le serveur fait autorité : il garde les salons, le mot secret, les minuteurs et les scores ; chaque joueur
+reçoit une <i>vue personnalisée</i> de la partie, si bien que le mot n'atteint jamais l'appareil d'un devineur.</p>
+
+<svg viewBox="0 0 700 210" width="100%" style="margin:2mm 0" role="img" aria-label="Schéma d'architecture">
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1A1A1A"/></marker></defs>
+  <rect x="5" y="10" width="250" height="190" rx="10" fill="#FBF7EE" stroke="#1A1A1A" stroke-width="2"/>
+  <text x="15" y="30" font-weight="700" font-size="13">app/ (Expo, React Native)</text>
+  <rect x="15" y="40" width="230" height="36" rx="6" fill="#FFD23F" stroke="#1A1A1A"/><text x="25" y="62" font-size="11">Écrans expo-router (src/app/*)</text>
+  <rect x="15" y="84" width="110" height="50" rx="6" fill="#fff" stroke="#1A1A1A"/><text x="22" y="104" font-size="10.5">Stores zustand</text><text x="22" y="120" font-size="9.5">profil · session · histo.</text>
+  <rect x="135" y="84" width="110" height="50" rx="6" fill="#fff" stroke="#1A1A1A"/><text x="142" y="104" font-size="10.5">services/</text><text x="142" y="120" font-size="9.5">gameClient (Socket.IO)</text>
+  <rect x="15" y="142" width="230" height="48" rx="6" fill="#fff" stroke="#1A1A1A"/><text x="25" y="162" font-size="10.5">AsyncStorage (téléphone)</text><text x="25" y="178" font-size="9.5">profil, réglages, ids de session, historique</text>
+  <rect x="445" y="10" width="250" height="190" rx="10" fill="#FBF7EE" stroke="#1A1A1A" stroke-width="2"/>
+  <text x="455" y="30" font-weight="700" font-size="13">server/ (Node.js, Socket.IO)</text>
+  <rect x="455" y="40" width="230" height="36" rx="6" fill="#B6F03C" stroke="#1A1A1A"/><text x="465" y="62" font-size="11">socket/ : roomHandlers · gameHandlers</text>
+  <rect x="455" y="84" width="110" height="50" rx="6" fill="#fff" stroke="#1A1A1A"/><text x="462" y="104" font-size="10.5">RoomManager</text><text x="462" y="120" font-size="9.5">salons, hôte, codes</text>
+  <rect x="575" y="84" width="110" height="50" rx="6" fill="#fff" stroke="#1A1A1A"/><text x="582" y="104" font-size="10.5">GameManager</text><text x="582" y="120" font-size="9.5">vues par joueur</text>
+  <rect x="455" y="142" width="230" height="48" rx="6" fill="#fff" stroke="#1A1A1A"/><text x="465" y="162" font-size="10.5">DrawGuessGame · DrawPassGame</text><text x="465" y="178" font-size="9.5">machines à états + PhaseClock</text>
+  <rect x="270" y="70" width="160" height="70" rx="8" fill="#3D7BFF" stroke="#1A1A1A" stroke-width="2"/>
+  <text x="282" y="92" font-weight="700" font-size="12">shared/</text><text x="282" y="110" font-size="9.5">domain · protocol (zod)</text><text x="282" y="126" font-size="9.5">matchGuess · règles</text>
+  <line x1="245" y1="109" x2="268" y2="105" stroke="#1A1A1A" marker-end="url(#a)"/>
+  <line x1="455" y1="105" x2="432" y2="105" stroke="#1A1A1A" marker-end="url(#a)"/>
+  <line x1="245" y1="58" x2="453" y2="58" stroke="#1A1A1A" stroke-dasharray="5 3" marker-end="url(#a)"/>
+  <line x1="453" y1="50" x2="247" y2="50" stroke="#1A1A1A" stroke-dasharray="5 3" marker-end="url(#a)"/>
+  <text x="262" y="42" font-size="9.5">WebSocket : requêtes + ack ⇄ vues, fil, traits</text>
+</svg>
+
+<h3>Navigation (expo-router, 10 écrans)</h3>
+<svg viewBox="0 0 700 120" width="100%" role="img" aria-label="Schéma de navigation">
+  <defs><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1A1A1A"/></marker></defs>
+  <g font-size="10.5">
+    <rect x="5" y="45" width="70" height="30" rx="6" fill="#FFD23F" stroke="#1A1A1A"/><text x="16" y="64">Home /</text>
+    <rect x="110" y="5" width="85" height="26" rx="6" fill="#fff" stroke="#1A1A1A"/><text x="118" y="22">/profile</text>
+    <rect x="110" y="37" width="85" height="26" rx="6" fill="#fff" stroke="#1A1A1A"/><text x="118" y="54">/create</text>
+    <rect x="110" y="69" width="85" height="26" rx="6" fill="#fff" stroke="#1A1A1A"/><text x="118" y="86">/join</text>
+    <rect x="110" y="101" width="85" height="18" rx="5" fill="#fff" stroke="#1A1A1A"/><text x="118" y="114" font-size="9.5">/rooms</text>
+    <rect x="245" y="45" width="110" height="30" rx="6" fill="#B6F03C" stroke="#1A1A1A"/><text x="252" y="64">/room/[code]</text>
+    <rect x="400" y="45" width="110" height="30" rx="6" fill="#3D7BFF" stroke="#1A1A1A"/><text x="406" y="64">/game/[code]</text>
+    <rect x="555" y="15" width="135" height="26" rx="6" fill="#fff" stroke="#1A1A1A"/><text x="562" y="32">/history → /history/[id]</text>
+    <rect x="555" y="80" width="135" height="26" rx="6" fill="#fff" stroke="#1A1A1A"/><text x="562" y="97">/settings</text>
+  </g>
+  <g stroke="#1A1A1A" fill="none" marker-end="url(#b)">
+    <path d="M75 55 L108 18"/><path d="M75 60 L108 50"/><path d="M75 65 L108 82"/><path d="M75 70 L108 110"/>
+    <path d="M195 50 L243 57"/><path d="M195 82 L243 64"/><path d="M195 110 L243 70"/>
+    <path d="M355 60 L398 60"/><path d="M510 55 L553 30"/>
+  </g>
+  <text x="352" y="40" font-size="9">status = playing</text>
+  <text x="200" y="45" font-size="9">code</text>
+</svg>
+<p class="note">Le code du salon voyage comme paramètre de route ; l'écran de jeu passe au podium ou à la révélation,
+puis « Back to lobby » revient à <code>/room/[code]</code>.</p>
+
+<h3>Modèle de données</h3>
+<p>Le modèle est défini une seule fois dans <code>shared/src/domain.ts</code> et partagé par l'application et le
+serveur : <code>Player</code> (id, pseudo, couleur, score, connecté, date d'arrivée), <code>RoomSettings</code>
+(mode, visibilité, durée, tours), <code>RoomSnapshot</code> (état visible d'un salon), <code>Stroke</code> (trait :
+couleur, taille ∈ {4, 10, 22}, points <code>[x0, y0, x1, y1…]</code> normalisés), <code>ChainEntry</code>
+(texte ou dessin), <code>PassChain</code> et <code>GameResult</code> (partie enregistrée). Chaque message entrant est
+validé par un schéma <i>zod</i> (<code>shared/src/validation.ts</code>, <code>protocol.ts</code>). Les opérations qui
+modifient un salon sont toutes dans <code>RoomManager</code> (<code>createRoom</code>, <code>joinRoom</code>,
+<code>leaveRoom</code> avec transfert d'hôte, <code>updateSettings</code>, <code>startGame</code>, <code>endGame</code>)
+et renvoient un <code>Result</code> typé (succès ou code d'erreur) au lieu de lever une exception.</p>
+
+<h3>Trois extraits de code personnels</h3>
+<p class="file"><b>Extrait A — règle métier</b> · <code>shared/src/guess/matchGuess.ts</code>, <code>matchGuess()</code> ·
+Entrées : proposition, mot secret · Algorithme : normalisation (casse, accents, ponctuation, espaces), égalité
+singulier/pluriel, puis distance d'édition bornée · Résultat : <code>'correct' | 'close' | 'wrong'</code>.</p>
+<pre>export function matchGuess(guess: string, answer: string): GuessVerdict {
+  // Spaces are ignored so "icecream" matches "ice cream".
+  const g = normalizeGuess(guess).replace(WHITESPACE, '');
+  const a = normalizeGuess(answer).replace(WHITESPACE, '');
+  if (g.length === 0) return 'wrong';
+  if (g === a || singular(g) === singular(a)) return 'correct';
+  const k = closeThreshold(a.length);            // ≤4 lettres : 0 · 5–7 : 1 · ≥8 : 2
+  if (k > 0 &amp;&amp; boundedOsaDistance(g, a, k) &lt;= k) return 'close';
+  return 'wrong';
+}</pre>
+
+<p class="file"><b>Extrait B — événement utilisateur</b> · <code>server/src/game/DrawGuessGame.ts</code>,
+<code>guess()</code> · Événement : un joueur envoie une proposition · Action métier : score selon le temps restant,
+fin anticipée si tout le monde a trouvé · Interface mise à jour : fil (« guessed it », « close ») et vues de tous les joueurs.</p>
+<pre>const verdict = matchGuess(text, this.word);
+if (verdict === 'correct') {
+  const points = guesserPoints(this.clock.remainingMs() / 1000, this.settings.roundDuration);
+  this.guessed.set(playerId, points);
+  this.addScore(playerId, points);
+  this.events.feed({ kind: 'guessed', playerId, points });
+  this.events.stateChanged();
+  if (this.roundOver()) this.endTurn();
+} else if (verdict === 'close') {
+  // Everyone learns that the player is close; only the author sees what they typed.
+  this.events.feed({ kind: 'close', playerId }, { except: playerId });
+  this.events.feed({ kind: 'close', playerId, text }, { only: playerId });
+}</pre>
+
+<p class="file"><b>Extrait C — validation</b> · <code>server/src/rooms/RoomManager.ts</code>, <code>joinRoom()</code> ·
+Cas normal : le joueur est ajouté et reçoit le salon · Cas d'erreur : salon introuvable, démarré, plein, pseudo
+pris · Test : <code>RoomManager.test.ts</code> (« rejects a nickname already used in the room, ignoring case »).</p>
+<pre>joinRoom(code: string, profile: PlayerProfile): Result&lt;JoinedRoom&gt; {
+  const room = this.rooms.get(code);
+  if (!room) return err('ROOM_NOT_FOUND');
+  if (room.status !== 'lobby') return err('GAME_ALREADY_STARTED');
+  if (room.players.size &gt;= MAX_PLAYERS) return err('ROOM_FULL');
+  const wanted = profile.nickname.toLocaleLowerCase();
+  const taken = [...room.players.values()].some((p) =&gt; p.nickname.toLocaleLowerCase() === wanted);
+  if (taken) return err('NICKNAME_TAKEN');
+  …</pre>
+
+<!-- ───────────────────────── 3. Tests ───────────────────────── -->
+<h2>3. Tests et démonstration</h2>
+<p><b>Environnement.</b> Windows 11, Node.js 24.21 ; émulateur Android 16 (API 36) avec Expo Go 58.0.6 ; serveur local
+puis serveur Render (Francfort). Les joueurs 2 et 3 sont simulés par un script Node.js utilisant
+<code>socket.io-client</code> (même protocole que l'application). Date : 25/11/2026.</p>
+<table>
+  <tr><th style="width:6%">N°</th><th style="width:26%">Action / données</th><th>Attendu</th><th>Observé</th><th style="width:7%">Statut</th></tr>
+  <tr><td>T1</td><td>Profil <code>Daly</code> → Create room (privé, Draw &amp; Guess)</td><td>Lobby avec code, badge HOST, Start bloqué sous 3 joueurs</td><td>Code <code>RXX8</code>, « Need 2 more players », 2 joueurs arrivent en direct (« Players 3/8 »)</td><td>OK</td></tr>
+  <tr><td>T2</td><td>Partie 3 joueurs, mot <code>desert</code> ; Nova tape <code>dessert</code>, Mia <code>Desert</code></td><td>« close » pour Nova, « correct » pour Mia avec points selon la vitesse, podium</td><td><code>close</code> ; Mia +179, dessinateur +125 ; indice <code>_ _ f _</code> au tour suivant ; « Mia wins! »</td><td>OK</td></tr>
+  <tr><td>T3</td><td>Draw &amp; Pass : écrire « a dog on a skateboard », dessiner, décrire</td><td>Bonne rotation, 3 chaînes révélées, partie dans l'historique</td><td>Phrase de Nova reçue à dessiner ; chaîne de Daly : texte → dessin de Mia → description ; listée dans History</td><td>OK</td></tr>
+  <tr><td>T4</td><td>Navigation / état : fermeture forcée puis réouverture ; serveur coupé</td><td>Profil et historique conservés ; retour au salon proposé</td><td>Pseudo conservé ; « Back to room 268E » ; serveur coupé : bandeau Offline, historique lisible, suppression persistée</td><td>OK</td></tr>
+  <tr><td>T5</td><td>Négatif : pseudo vide ; code <code>ZZZZ</code></td><td>Refus avec message, application stable</td><td>« At least 2 characters » ; « No room with code ZZZZ »</td><td>OK</td></tr>
+  <tr><td>T6</td><td>Négatif : pseudo <code>daly</code> déjà pris ; 2 joueurs ; serveur arrêté</td><td>Refus doublon ; démarrage impossible ; hors ligne signalé</td><td><code>NICKNAME_TAKEN</code> ; « Need 1 more player » ; « Offline: game server unreachable »</td><td>OK</td></tr>
+</table>
+<p><b>Tests automatiques.</b> <code>npm test</code> exécute <b>84 tests Vitest</b> (50 dans <code>shared/</code>, 34 dans
+<code>server/</code>), relancés par GitHub Actions à chaque push : algorithme « close » (comparé à une implémentation
+de référence sur 2 000 paires aléatoires), rotation Draw &amp; Pass pour 3 à 8 joueurs, chaque code d'erreur du
+serveur, moteurs de jeu avec minuteurs simulés, et une partie complète avec 3 vrais clients Socket.IO.</p>
+<p><b>Bugs corrigés.</b> Deux copies de React et de modules natifs dans le monorepo (versions forcées par
+<code>overrides</code>) ; exports de <code>shared/</code> invisibles pour le serveur (paquet déclaré en module ES) ;
+tableau des scores étiré ; fil de messages qui ne défilait pas ; notifications invisibles pour le dessinateur ;
+contraste insuffisant du texte blanc sur bleu (≈ 3,8:1 → texte encre ≈ 4,5:1).</p>
+<p><b>Limites.</b> Tests sur émulateur avec joueurs simulés (les téléphones réels suivent le guide
+<code>docs/PHONES.md</code>) ; démarrage en mode avion impossible avec Expo Go (le code vient de Metro), d'où le test
+« serveur coupé » ; animation de confettis non observée pendant les sessions.</p>
+
+<!-- ───────────────────────── 4. Questions ───────────────────────── -->
+<h2>4. Réponses de code (Q1–Q8)</h2>
+
+<div class="q"><h3>Q1 — Type d'application et contrainte mobile</h3>
+<p class="file">Fichiers : <code>app/package.json</code>, <code>app/src/features/drawing/DrawingCanvas.tsx</code>, <code>shared/src/constants.ts</code></p>
+<p>Application <b>hybride-native</b> : React Native en TypeScript, exécutée par Expo (SDK 58). Un seul code pour
+Android et iOS, testable sur iPhone avec Expo Go sans Mac, et des composants natifs (Skia pour le dessin,
+Reanimated/Gesture Handler pour suivre le doigt sur le fil d'interface). <b>Contrainte mobile qui a orienté la
+conception :</b> les écrans n'ont pas la même taille. Un dessin fait sur un petit téléphone doit apparaître
+identique sur un grand. Les points sont donc enregistrés en coordonnées <b>normalisées 0..1</b> sur un canevas
+carré, et l'épaisseur du trait est mise à l'échelle :</p>
+<pre>onUpdate: (e) =&gt; {
+  const w = widthValue.value;
+  const x = clamp01(e.x / w);          // 0..1, quel que soit l'écran
+  const y = clamp01(e.y / w);
+  …
+// strokePath.ts : strokeWidthFor(size, width) = (size * width) / 360</pre>
+<p>Deuxième contrainte : le réseau mobile est instable. Un joueur déconnecté garde sa place
+<code>RECONNECT_GRACE_MS = 60_000</code> ms et l'application rejoint automatiquement son salon à la reconnexion
+(<code>gameClient.ts</code>, <code>rejoinSavedRoom()</code>).</p></div>
+
+<div class="q"><h3>Q2 — Point d'entrée et initialisation</h3>
+<p class="file">Fichiers : <code>app/package.json</code> (<code>"main": "expo-router/entry"</code>), <code>app/src/app/_layout.tsx</code>, <code>RootLayout()</code></p>
+<p>Expo démarre <code>expo-router/entry</code>, qui charge le layout racine <code>src/app/_layout.tsx</code>. Séquence :
+(1) <code>SplashScreen.preventAutoHideAsync()</code> au niveau du module garde l'écran de lancement ; (2)
+<code>useFonts</code> charge les trois polices ; (3) <code>useStoresHydrated()</code> attend la relecture
+d'AsyncStorage (profil, réglages, session, historique) ; (4) <code>connect(serverUrl)</code> ouvre le socket ;
+(5) l'écran de lancement disparaît et la pile de navigation s'affiche.</p>
+<pre>const hydrated = useStoresHydrated();
+const serverUrl = useServerUrl();
+const ready = (fontsLoaded || fontError !== null) &amp;&amp; hydrated;
+useEffect(() =&gt; { if (hydrated) connect(serverUrl); }, [hydrated, serverUrl]);
+useEffect(() =&gt; { if (ready) void SplashScreen.hideAsync(); }, [ready]);
+if (!ready) return null;</pre>
+<p>Côté serveur, <code>server/src/index.ts</code> appelle <code>createGameServer()</code> puis
+<code>httpServer.listen(PORT)</code>.</p></div>
+
+<div class="q"><h3>Q3 — Modèle de données</h3>
+<p class="file">Fichiers : <code>shared/src/domain.ts</code>, <code>server/src/rooms/RoomManager.ts</code>, <code>app/src/stores/historyStore.ts</code></p>
+<p>Les types sont dans <code>domain.ts</code> ; le serveur stocke les salons dans une <code>Map&lt;code, Room&gt;</code>
+dont les joueurs sont une <code>Map&lt;id, Player&gt;</code> (ordre d'insertion = ordre d'arrivée).
+<b>Création</b> : <code>createRoom()</code> génère un code libre et crée l'hôte avec <code>newPlayer()</code>.
+<b>Modification</b> : <code>leaveRoom()</code> retire le joueur et, si c'était l'hôte, choisit le plus ancien joueur connecté.
+<b>Transformation</b> : <code>snapshot()</code> copie l'état interne en <code>RoomSnapshot</code> envoyable.</p>
+<pre>room.players.delete(playerId);
+this.roomOfPlayer.delete(playerId);
+if (room.players.size === 0) { this.rooms.delete(room.code); return ok(null); }
+if (room.hostId === playerId) room.hostId = this.pickNewHost(room).id;
+return ok(this.snapshot(room));</pre>
+<p>Côté téléphone, <code>useHistoryStore.addGame()</code> ajoute un <code>GameResult</code> en tête de liste
+(sans doublon, 20 au maximum).</p></div>
+
+<div class="q"><h3>Q4 — Événement → traitement → interface</h3>
+<p class="file">Fichiers : <code>app/src/features/game/GuessInput.tsx</code> → <code>services/gameApi.ts</code> → <code>server/src/socket/gameHandlers.ts</code> → <code>DrawGuessGame.guess()</code> → <code>stores/gameStore.ts</code> → <code>features/game/Feed.tsx</code></p>
+<p>(1) <b>Événement</b> : touche « Send » (<code>onPress</code> / <code>onSubmitEditing</code>) dans <code>GuessInput</code>.
+(2) Validation locale puis <code>sendGuess()</code> → <code>emitWithAck('game:guess', { text })</code>.
+(3) <b>Traitement</b> serveur : schéma zod, puis <code>DrawGuessGame.guess()</code> (extrait B).
+(4) <b>Modification d'état</b> : le serveur émet <code>game:feed</code> et <code>game:state</code> ;
+<code>gameClient.ts</code> les range dans <code>useGameStore</code> (<code>pushFeed</code>, <code>applyGameView</code>).
+(5) <b>Affichage</b> : le composant <code>Feed</code> s'abonne au store et affiche une notification animée
+(« Nova is close! », « Mia guessed it! +179 ») ; le tableau des scores se trie et passe la case du joueur en vert ;
+le téléphone vibre (<code>haptics.success()</code> / <code>warning()</code>).</p>
+<pre>const result = await sendGuess(parsed.data);
+if (!result.ok) { showToast(errorMessage(result.error), 'error'); return; }
+setText('');
+if (result.value.verdict === 'correct') haptics.success();
+else if (result.value.verdict === 'close') haptics.warning();</pre></div>
+
+<div class="q"><h3>Q5 — Validation et cas négatif</h3>
+<p class="file">Fichiers : <code>shared/src/validation.ts</code> (<code>NicknameSchema</code>), <code>app/src/app/profile.tsx</code> (<code>save()</code>), <code>server/src/socket/respond.ts</code> (<code>parse()</code>)</p>
+<p>La même règle sert des deux côtés : pseudo de 2 à 16 caractères, lettres (tous alphabets), chiffres ou <code>_</code>.</p>
+<pre>export const NicknameSchema = z.string().trim()
+  .min(NICKNAME_MIN_LENGTH, `At least ${NICKNAME_MIN_LENGTH} characters`)
+  .max(NICKNAME_MAX_LENGTH, `At most ${NICKNAME_MAX_LENGTH} characters`)
+  .regex(NICKNAME_PATTERN, 'Only letters, numbers and _');
+
+// profile.tsx
+const parsed = NicknameSchema.safeParse(nickname);
+if (!parsed.success) { setError(firstIssueMessage(parsed.error)); haptics.error(); return; }</pre>
+<p><b>Réponse visible</b> : champ rouge qui tremble, message « At least 2 characters », rien n'est enregistré
+(test T5). Côté serveur, tout message invalide reçoit <code>{ ok: false, error: 'INVALID_PAYLOAD' }</code> sans
+arrêter le serveur (test d'intégration « rejects a malformed payload without crashing »).</p></div>
+
+<div class="q"><h3>Q6 — Navigation et transfert</h3>
+<p class="file">Fichiers : <code>app/src/app/create.tsx</code>, <code>app/src/app/room/[code].tsx</code>, <code>app/src/app/history/index.tsx</code></p>
+<p>expo-router associe chaque fichier de <code>src/app/</code> à une route. Après la création, le code du salon est
+transmis comme <b>paramètre de route</b> : <code>router.replace(`/room/${result.value.room.code}`)</code> ; le lobby le
+lit avec <code>useLocalSearchParams&lt;{ code: string }&gt;()</code>. Quand le serveur annonce le début de la partie,
+tous les lobbies passent au jeu ; un drapeau évite que la sortie du lobby fasse quitter le salon :</p>
+<pre>useEffect(() =&gt; () =&gt; { if (!enteringGame.current) void leaveRoom(); }, []);
+useEffect(() =&gt; {
+  if (room?.status === 'playing') {
+    enteringGame.current = true;
+    router.replace(`/game/${room.code}`);
+  }
+}, [room?.status, room?.code]);</pre>
+<p>L'historique ouvre une partie par son identifiant :
+<code>router.push({ pathname: '/history/[id]', params: { id: item.id } })</code>.</p></div>
+
+<div class="q"><h3>Q7 — État, reprise et persistance</h3>
+<p class="file">Fichiers : <code>app/src/stores/*.ts</code>, <code>app/src/hooks/useStoresHydrated.ts</code>, <code>app/src/services/gameClient.ts</code>, <code>app/app.json</code></p>
+<ul>
+  <li><b>État temporaire</b> (composant, perdu en quittant l'écran) : texte d'une proposition, pinceau, dessin en cours.</li>
+  <li><b>État d'interface / de session</b> (mémoire, store zustand non persisté) : vue de la partie, fil des messages, salon courant, toasts.</li>
+  <li><b>Données sauvegardées</b> (zustand <code>persist</code> + AsyncStorage) : profil, réglages, identifiants de session, historique.</li>
+</ul>
+<pre>// sessionStore.ts — seuls les identifiants sont sauvegardés ; le salon est redemandé au serveur
+partialize: ({ playerId, roomCode }) =&gt; ({ playerId, roomCode }),</pre>
+<p><b>Navigation</b> : les stores survivent aux changements d'écran ; quitter le lobby fait quitter le salon.
+<b>Rotation</b> : l'application est verrouillée en portrait (<code>"orientation": "portrait"</code>), choix adapté à un
+canevas carré. <b>Fermeture complète</b> (T4) : au redémarrage, l'écran de lancement attend la relecture
+d'AsyncStorage ; à la connexion, <code>rejoinSavedRoom()</code> reprend la place avec <code>room:rejoin</code> et le
+serveur renvoie la vue de la partie ; si le salon n'existe plus, la session est effacée (« Your last room is closed. »).</p></div>
+
+<div class="q"><h3>Q8 — Analyse et amélioration d'une fonction</h3>
+<p class="file">Fonction : <code>shared/src/guess/matchGuess.ts</code>, <code>matchGuess()</code> et <code>boundedOsaDistance()</code></p>
+<p><b>Entrées</b> : la proposition et le mot secret. <b>Étapes</b> : (1) normalisation (minuscules, accents retirés par
+décomposition Unicode, ponctuation et espaces supprimés) ; (2) égalité exacte ou au singulier près → correct ;
+(3) seuil <i>k</i> selon la longueur du mot (≤ 4 : 0, 5–7 : 1, ≥ 8 : 2) ; (4) distance de Damerau-Levenshtein
+« restreinte » (insertion, suppression, substitution, inversion de deux lettres voisines) calculée <b>seulement
+dans une bande de largeur k</b> autour de la diagonale, avec arrêt dès qu'une ligne dépasse <i>k</i> : coût
+O(n·k) au lieu de O(n·m). <b>Sortie</b> : correct / close / wrong. <b>Cas limites</b> : chaîne vide ou seulement
+de la ponctuation → wrong ; <code>café</code>/<code>cafe</code>, <code>ice cream</code>/<code>icecream</code>,
+<code>apples</code>/<code>apple</code> → correct ; <code>car</code>/<code>cat</code> → wrong. Mesure : 10 000
+comparaisons en 20,6 ms (≈ 2 µs chacune).</p>
+<p><b>Amélioration proposée</b> : les mots de 4 lettres ou moins n'ont jamais de « close », même pour une simple
+inversion (<code>dgo</code> pour <code>dog</code>). Proposition : pour ces mots, accepter <i>k</i> = 1 uniquement si
+l'unique erreur est une inversion de deux lettres voisines. <b>Test qui la validerait</b> :
+<code>expect(matchGuess('dgo', 'dog')).toBe('close')</code> tout en gardant
+<code>expect(matchGuess('car', 'cat')).toBe('wrong')</code> (substitution, toujours refusée).</p></div>
+
+<!-- ───────────────────────── Captures ───────────────────────── -->
+<h2 class="page-break">Captures authentiques (émulateur Android 16, Expo Go 58)</h2>
+<p>Captures prises pendant l'exécution des tests T1 à T6, sans retouche (fichiers dans <code>captures/</code>).</p>
+<div class="shots">
+  <figure><img src="../../captures/04-negative-empty-nickname.png" alt=""><figcaption><b>T5</b> — pseudo vide refusé (Q5)</figcaption></figure>
+  <figure><img src="../../captures/05-negative-unknown-room.png" alt=""><figcaption><b>T5</b> — code de salon inconnu</figcaption></figure>
+  <figure><img src="../../captures/12-negative-server-offline.png" alt=""><figcaption><b>T6</b> — serveur arrêté : bandeau hors ligne</figcaption></figure>
+  <figure><img src="../../captures/13-history-offline.png" alt=""><figcaption><b>T4</b> — historique lisible serveur coupé (Q7)</figcaption></figure>
+</div>
+<div class="shots">
+  <figure><img src="../../captures/11-word-choice.png" alt=""><figcaption><b>T2</b> — choix du mot, compte à rebours</figcaption></figure>
+  <figure><img src="../../captures/08-drawer-view.png" alt=""><figcaption><b>T2</b> — vue du dessinateur, Mia a trouvé</figcaption></figure>
+  <figure><img src="../../captures/07-podium.png" alt=""><figcaption><b>T2</b> — podium (action 4)</figcaption></figure>
+  <figure><img src="../../captures/09-pass-draw-step.png" alt=""><figcaption><b>T3</b> — Draw &amp; Pass : dessiner la phrase reçue</figcaption></figure>
+</div>
+
+<!-- ───────────────────────── 5. Bilan ───────────────────────── -->
+<h2>5. Bilan et sources</h2>
+<p><b>Réalisé.</b> Les deux modes de jeu fonctionnent de bout en bout à 3 joueurs, avec salons publics et privés,
+réglages par l'hôte, détection des fautes proches, indices, scores, révélation des chaînes, historique hors ligne,
+reconnexion, et un serveur déployé (Render) utilisable en 4G. Qualité : TypeScript strict, 84 tests, intégration
+continue. <b>Non réalisé / limites.</b> Dessin transmis à la fin de chaque trait ; pas d'application publiée sur
+les stores ; salons en mémoire (perdus au redémarrage du serveur) ; serveur gratuit mis en veille après 15 minutes.
+<b>Amélioration réaliste.</b> Transmettre le trait en cours toutes les 50 ms (les traits sont déjà simplifiés et
+arrondis à 4 décimales pour limiter le volume) et persister les salons dans Redis pour survivre aux redéploiements.</p>
+<p><b>Dépendances principales.</b> Expo SDK 58, React Native 0.88, expo-router, @shopify/react-native-skia,
+react-native-reanimated, react-native-gesture-handler, zustand, AsyncStorage, socket.io, zod ; Vitest, ESLint,
+Prettier. Polices Google Fonts (licence OFL). Documentation : docs.expo.dev, socket.io, render.com/docs.</p>
+<p><b>Déclaration des aides.</b> L'assistant de programmation <b>Claude Code</b> (Anthropic) a été utilisé pour
+proposer des options de conception, écrire le code, les tests, la documentation et un brouillon de ce rapport.
+Les choix ont été faits par l'étudiant, et chaque fonctionnalité a été vérifiée par les tests automatiques et par
+exécution sur l'émulateur Android (détail dans <code>DECLARATION_SOURCES.md</code>).</p>
+
+</body>
+</html>

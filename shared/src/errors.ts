@@ -8,6 +8,8 @@ export const ERROR_CODES = [
   'NOT_ENOUGH_PLAYERS',
   'NOT_HOST',
   'NOT_IN_ROOM',
+  'NO_GAME',
+  'NOT_ALLOWED',
   'INTERNAL_ERROR',
 ] as const;
 
@@ -22,5 +24,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   NOT_ENOUGH_PLAYERS: 'You need at least 3 players to start.',
   NOT_HOST: 'Only the host can do that.',
   NOT_IN_ROOM: 'You are not in a room.',
+  NO_GAME: 'No game is running in this room.',
+  NOT_ALLOWED: "You can't do that right now.",
   INTERNAL_ERROR: 'Something went wrong on the server. Try again.',
 };

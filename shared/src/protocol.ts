@@ -3,7 +3,15 @@
  * Requests use acknowledgements so each call gets a typed `Result` back.
  */
 import { z } from 'zod';
-import type { PublicRoomSummary, RoomSnapshot } from './domain';
+import type { PublicRoomSummary, RoomSnapshot, Stroke } from './domain';
+import type {
+  ChooseWordPayload,
+  FeedEvent,
+  GameView,
+  GuessPayload,
+  GuessVerdictResult,
+  PassSubmitPayload,
+} from './game';
 import type { Result } from './result';
 import { PlayerProfileSchema, RoomCodeSchema, RoomSettingsSchema } from './validation';
 
@@ -44,6 +52,15 @@ export interface ClientToServerEvents {
   'room:list': (ack: Ack<PublicRoomSummary[]>) => void;
   'room:update-settings': (payload: UpdateSettingsPayload, ack: Ack<RoomSnapshot>) => void;
   'room:start': (ack: Ack<null>) => void;
+  /** Current game view, e.g. when the game screen opens or after a reconnect. */
+  'game:sync': (ack: Ack<GameView>) => void;
+  'game:choose-word': (payload: ChooseWordPayload, ack: Ack<null>) => void;
+  'game:guess': (payload: GuessPayload, ack: Ack<GuessVerdictResult>) => void;
+  /** Drawer only. Fire-and-forget: strokes are relayed to the other players. */
+  'draw:stroke': (stroke: Stroke) => void;
+  'draw:undo': () => void;
+  'draw:clear': () => void;
+  'pass:submit': (payload: PassSubmitPayload, ack: Ack<null>) => void;
 }
 
 /** Per-connection data the server keeps on each socket. */
@@ -55,4 +72,9 @@ export interface SocketData {
 export interface ServerToClientEvents {
   'room:updated': (room: RoomSnapshot) => void;
   'game:started': (room: RoomSnapshot) => void;
+  'game:state': (view: GameView) => void;
+  'game:feed': (event: FeedEvent) => void;
+  'draw:stroke': (stroke: Stroke) => void;
+  'draw:undo': () => void;
+  'draw:clear': () => void;
 }

@@ -2,13 +2,14 @@
  * Domain model of DrawTopia. These are the shapes the server stores and the app displays.
  * Vocabulary is defined in shared/GLOSSARY.md.
  */
-import type { AVATAR_COLORS, ROUND_DURATIONS } from './constants';
+import type { AVATAR_COLORS, BRUSH_SIZES, ROUND_DURATIONS } from './constants';
 
 export type GameMode = 'draw-guess' | 'draw-pass';
 export type RoomVisibility = 'public' | 'private';
 export type RoomStatus = 'lobby' | 'playing' | 'finished';
 export type AvatarColor = (typeof AVATAR_COLORS)[number];
 export type RoundDuration = (typeof ROUND_DURATIONS)[number];
+export type BrushSize = (typeof BRUSH_SIZES)[number];
 
 /** What a player chooses about themselves (saved on the phone). */
 export interface PlayerProfile {
@@ -58,7 +59,7 @@ export interface PublicRoomSummary {
 export interface Stroke {
   id: string;
   color: string;
-  size: number;
+  size: BrushSize;
   points: number[];
 }
 

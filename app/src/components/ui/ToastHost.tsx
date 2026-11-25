@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { FadeOutUp, LinearTransition, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeInUp, FadeOutUp, LinearTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { type ToastTone, useToastStore } from '../../stores/toastStore';
 import { colors, ink } from '../../theme/tokens';
@@ -22,7 +22,7 @@ export function ToastHost() {
       {toasts.map((toast) => (
         <Animated.View
           key={toast.id}
-          entering={ZoomIn.springify().damping(14)}
+          entering={FadeInUp.springify().damping(16)}
           exiting={FadeOutUp}
           layout={LinearTransition}
         >

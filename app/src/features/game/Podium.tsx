@@ -2,6 +2,7 @@ import { type GameResult, rankPlayers } from '@drawtopia/shared';
 import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Avatar } from '../../components/ui/Avatar';
+import { Confetti } from '../../components/ui/Confetti';
 import { InkCard } from '../../components/ui/InkCard';
 import { Txt } from '../../components/ui/Txt';
 import { colors, ink } from '../../theme/tokens';
@@ -19,6 +20,7 @@ export function Podium({ result, myId }: { result: GameResult; myId: string | nu
 
   return (
     <View style={styles.container}>
+      <Confetti trigger={ranked[0]?.id === myId ? 1 : 0} />
       <Txt variant="display" align="center">
         {ranked[0]?.id === myId ? 'You win!' : `${ranked[0]?.nickname ?? ''} wins!`}
       </Txt>

@@ -2,6 +2,7 @@ import type { DrawGuessView } from '@drawtopia/shared';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
 import { Avatar } from '../../components/ui/Avatar';
+import { Confetti } from '../../components/ui/Confetti';
 import { InkButton } from '../../components/ui/InkButton';
 import { InkCard } from '../../components/ui/InkCard';
 import { Txt } from '../../components/ui/Txt';
@@ -37,6 +38,11 @@ export function DrawGuessBoard({ view, myId, players }: DrawGuessBoardProps) {
   const isDrawer = view.drawerId === myId;
   const drawerName = nameOf(players, view.drawerId);
   const iGuessed = myId !== null && view.guessedIds.includes(myId);
+  // Confetti bursts once per correct guess of mine (keyed by that feed line).
+  const myCorrectGuess = feed.findLast(
+    (e) => e.event.kind === 'guessed' && e.event.playerId === myId,
+  );
+  const confettiTrigger = myCorrectGuess ? myCorrectGuess.id + 1 : 0;
 
   const pick = async (word: string) => {
     const result = await chooseWord(word);
@@ -133,6 +139,7 @@ export function DrawGuessBoard({ view, myId, players }: DrawGuessBoardProps) {
           )}
         </>
       )}
+      <Confetti trigger={confettiTrigger} />
     </KeyboardAvoidingView>
   );
 }

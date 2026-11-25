@@ -1,4 +1,4 @@
-import { simplifyPoints, STROKE_MAX_POINTS, type Stroke } from '@drawtopia/shared';
+import { type BrushSize, simplifyPoints, STROKE_MAX_POINTS, type Stroke } from '@drawtopia/shared';
 import { Canvas, Path } from '@shopify/react-native-skia';
 import { useCallback, useMemo, useState } from 'react';
 import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
@@ -10,7 +10,7 @@ import { buildStrokePath, strokeWidthFor } from './strokePath';
 
 export interface Brush {
   color: string;
-  size: number;
+  size: BrushSize;
 }
 
 interface DrawingCanvasProps {
@@ -57,7 +57,8 @@ export function DrawingCanvas({ strokes, editable, brush, onStrokeEnd }: Drawing
         id: newStrokeId(),
         color: brush.color,
         size: brush.size,
-        points: simplifyPoints(points, SIMPLIFY_EPSILON),
+        // 4 decimals ≈ 0.04 px on a 400 px canvas: invisible, but much smaller messages.
+        points: simplifyPoints(points, SIMPLIFY_EPSILON).map((v) => Math.round(v * 1e4) / 1e4),
       });
     },
     [brush.color, brush.size, onStrokeEnd],

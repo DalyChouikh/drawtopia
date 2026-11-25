@@ -20,6 +20,7 @@ import { useProfileGate } from '../features/rooms/useProfileGate';
 import { errorMessage } from '../services/gameClient';
 import { createRoom, joinRoom, listPublicRooms } from '../services/roomsApi';
 import { useProfileStore } from '../stores/profileStore';
+import { useSessionStore } from '../stores/sessionStore';
 import { showToast } from '../stores/toastStore';
 import { TOUCH_MIN } from '../theme/tokens';
 
@@ -65,6 +66,8 @@ export default function Home() {
         </Pressable>
       </Animated.View>
 
+      <ResumeRoomCard />
+
       <Animated.View entering={FadeInDown.delay(200)} style={styles.actions}>
         <InkButton
           label="Quick play"
@@ -89,6 +92,26 @@ export default function Home() {
         <FooterLink label="Settings" onPress={() => router.push('/settings')} />
       </View>
     </Screen>
+  );
+}
+
+/**
+ * After the app was closed or lost its connection, the saved session rejoins the room
+ * automatically; this card leads back to it (lobby, or the game if one is running).
+ */
+function ResumeRoomCard() {
+  const room = useSessionStore((s) => s.room);
+  if (!room) return null;
+  const playing = room.status === 'playing';
+  return (
+    <Animated.View entering={FadeInDown}>
+      <InkButton
+        label={playing ? `Back to your game (${room.code})` : `Back to room ${room.code}`}
+        color="yellow"
+        tilt={1}
+        onPress={() => router.push(playing ? `/game/${room.code}` : `/room/${room.code}`)}
+      />
+    </Animated.View>
   );
 }
 

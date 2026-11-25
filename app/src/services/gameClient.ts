@@ -7,6 +7,7 @@ import {
   err,
 } from '@drawtopia/shared';
 import { type Socket, io } from 'socket.io-client';
+import { useGameStore } from '../stores/gameStore';
 import { useSessionStore } from '../stores/sessionStore';
 import { showToast } from '../stores/toastStore';
 import { useConnectionStore } from './connectionStore';
@@ -52,6 +53,13 @@ export function connect(url: string): void {
 
   socket.on('room:updated', applyRoomUpdate);
   socket.on('game:started', applyRoomUpdate);
+
+  const game = useGameStore.getState();
+  socket.on('game:state', game.setView);
+  socket.on('game:feed', game.pushFeed);
+  socket.on('draw:stroke', game.addStroke);
+  socket.on('draw:undo', game.undoStroke);
+  socket.on('draw:clear', game.clearStrokes);
 }
 
 export function disconnect(): void {
@@ -95,6 +103,11 @@ export async function request<T>(
   } catch {
     return err('TIMEOUT');
   }
+}
+
+/** Fire-and-forget message (e.g. a stroke); dropped when offline. */
+export function emit(send: (socket: GameSocket) => void): void {
+  if (socket?.connected) send(socket);
 }
 
 export function errorMessage(code: ClientErrorCode): string {

@@ -40,7 +40,15 @@
       "typedRoutes": true
     },
     "extra": {
-      "serverUrl": "https://drawtopia-server-wbk7.onrender.com"
+      "serverUrl": "https://drawtopia-server-wbk7.onrender.com",
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "f7ce165c-7c69-40cf-8e90-dfe71fccf354"
+      }
     }
   }
 }

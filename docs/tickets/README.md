@@ -19,7 +19,7 @@ exam (M1–M8 requirements, Q1–Q8 report questions).
 | 12 | [Results and local game history](12-history.md) | 10, 11 | M3, M7 | done |
 | 13 | [Motion and polish](13-polish.md) | 10, 11 | M6 | done |
 | 14 | [Deploy server (Render)](14-deploy.md) | 05 | demo, C | done |
-| 15 | [Exam deliverables: README, tests doc, report, ZIP](15-deliverables.md) | all | C, D, E | todo |
+| 15 | [Exam deliverables: README, tests doc, report, ZIP](15-deliverables.md) | all | C, D, E | done — add validation/ then run scripts/make-zip.ps1 |
 
 ## Decisions locked during grilling
 

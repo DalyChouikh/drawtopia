@@ -15,3 +15,11 @@
 
 ## Acceptance criteria
 - [ ] Fresh extract → `npm install` → server and app run by following only the README.
+
+## Notes (done)
+- `README.md`, `docs/tests.md`, `DECLARATION_SOURCES.md`, `docs/report/rapport.html` → `rapport.pdf` (11 pages
+  incl. cover), `docs/PHONES.md`, `scripts/make-zip.ps1`.
+- Dry run on 25/11/2026: the ZIP was extracted into an empty folder and the README followed from scratch —
+  `npm install` (829 packages), `npm test` 84/84, typecheck 0 errors, server `/health` OK, Android bundle built.
+- Still to do by the student: put the dated approval in `validation/`, fill the validation date on the report's
+  cover page, re-render the PDF, run `scripts/make-zip.ps1`.

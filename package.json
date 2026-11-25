@@ -10,13 +10,26 @@
   "scripts": {
     "app": "npm run start -w @drawtopia/app",
     "server": "npm run dev -w @drawtopia/server",
-    "test": "npm test -w @drawtopia/shared -w @drawtopia/server --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "lint": "eslint shared server && npm run lint -w @drawtopia/app",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm test -w @drawtopia/shared -w @drawtopia/server",
+    "check": "npm run typecheck && npm run lint && npm test"
   },
   "engines": {
     "node": ">=20"
   },
   "overrides": {
     "react": "19.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1",
+    "typescript-eslint": "^8.74.0",
+    "vitest": "^5.1.2"
   }
 }

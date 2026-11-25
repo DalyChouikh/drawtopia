@@ -4,7 +4,7 @@
 
 ## Scope
 - ESLint (flat config) for `app/` (`eslint-config-expo`), `server/`, `shared/`; one shared Prettier config.
-- Jest for `shared/` and `server/` (TypeScript transform).
+- Vitest for `shared/` and `server/` (Jest-compatible API; runs TypeScript + ESM natively, unlike Jest).
 - Root scripts: `lint`, `format`, `typecheck`, `test`.
 - GitHub Actions workflow running `npm ci`, `typecheck`, `lint`, `test` on push.
 

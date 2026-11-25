@@ -378,8 +378,8 @@ l'unique erreur est une inversion de deux lettres voisines. <b>Test qui la valid
 <p><b>Réalisé.</b> Les deux modes de jeu fonctionnent de bout en bout à 3 joueurs, avec salons publics et privés,
 réglages par l'hôte, détection des fautes proches, indices, scores, révélation des chaînes, historique hors ligne,
 reconnexion, et un serveur déployé (Render) utilisable en 4G. Qualité : TypeScript strict, 86 tests, intégration
-continue. <b>Non réalisé / limites.</b> Pas d'application publiée sur les stores ; les messages de dessin en direct
-sont « volatils » (un lot peut être perdu sur un réseau saturé ; le trait final, lui, est toujours livré) ; salons en mémoire (perdus au redémarrage du serveur) ; serveur gratuit mis en veille après 15 minutes.
+continue. <b>Non réalisé / limites.</b> Pas d'application publiée sur les stores ; sur une connexion lente le dessin en
+direct arrive avec retard (le trait final reste la référence) ; salons en mémoire (perdus au redémarrage du serveur) ; serveur gratuit mis en veille après 15 minutes.
 <b>Amélioration réaliste.</b> Persister les salons dans Redis pour survivre aux redéploiements.</p>
 <p><b>Dépendances principales.</b> Expo SDK 58, React Native 0.88, expo-router, @shopify/react-native-skia,
 react-native-reanimated, react-native-gesture-handler, zustand, AsyncStorage, socket.io, zod ; Vitest, ESLint,

@@ -24,9 +24,13 @@ export function sendStroke(stroke: Stroke): void {
   emit((s) => s.emit('draw:stroke', stroke));
 }
 
-/** Live drawing: points of the stroke being drawn. Volatile — dropped rather than queued if the network lags. */
+/**
+ * Live drawing: points of the stroke being drawn. Sent as normal (reliable) messages rather than
+ * Socket.IO "volatile" ones, which are skipped when the connection is not ready: these messages are
+ * tiny (a few points, ~20/s), and reliable delivery avoids gaps in the line other players see.
+ */
 export function sendStrokeProgress(progress: StrokeProgress): void {
-  emit((s) => s.volatile.emit('draw:progress', progress));
+  emit((s) => s.emit('draw:progress', progress));
 }
 
 export function sendUndo(): void {

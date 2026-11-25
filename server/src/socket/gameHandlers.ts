@@ -75,13 +75,13 @@ export function registerGameHandlers(socket: GameSocket, games: GameManager): vo
     }
   });
 
-  // Live drawing: relayed as volatile (dropped rather than queued if a player lags), never stored.
+  // Live drawing: relayed to the other players (reliably, see app/src/services/gameApi.ts), never stored.
   socket.on('draw:progress', (payload) => {
     const progress = StrokeProgressSchema.safeParse(payload);
     const ctx = context();
     if (!progress.success || !ctx.ok || !(ctx.value.game instanceof DrawGuessGame)) return;
     if (!ctx.value.game.canDraw(ctx.value.playerId)) return;
-    socket.to(ctx.value.roomCode).volatile.emit('draw:progress', progress.data);
+    socket.to(ctx.value.roomCode).emit('draw:progress', progress.data);
   });
 
   socket.on('draw:undo', () => {

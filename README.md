@@ -126,8 +126,8 @@ Le détail des 6 tests documentés (T1–T6) est dans `docs/tests.md`.
   supprime (l'application l'indique : « Your last room is closed. »).
 - **Mode avion en développement** : Expo Go charge le code de l'application depuis Metro ; sans réseau il ne peut
   pas démarrer. Le test hors ligne se fait donc en coupant le **serveur de jeu** (l'historique reste lisible).
-- Le dessin est transmis en direct (lots de points toutes les 50 ms, messages « volatils » qui peuvent être
-  abandonnés si le réseau sature) ; le trait final remplace la version en direct.
+- Le dessin est transmis en direct (lots de points toutes les 50 ms) ; le trait final remplace la version en
+  direct. Sur une connexion très lente, le trait peut apparaître avec un léger retard.
 - Testé sur téléphones réels Android et iPhone (Expo Go) ; les essais de mesure ont été faits sur émulateur.
 - Aucune permission sensible (caméra, localisation…) n'est demandée.
 - Serveur gratuit : mise en veille après 15 min d'inactivité (≈ 1 min de réveil).

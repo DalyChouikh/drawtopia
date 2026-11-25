@@ -11,3 +11,9 @@
 
 ## Acceptance criteria
 - [ ] Rounds stay smooth on the emulator; with reduce motion on, bounces and confetti are off.
+
+## Notes (done)
+- Confetti burst on your own correct guess and on the podium when you win (Reanimated, seeded so rendering
+  stays pure); hidden when the system asks for reduced motion (`useReducedMotion`).
+- Branded splash (`expo-splash-screen` plugin). Expo Go shows the app icon instead; the splash appears in builds.
+- Toasts slide in instead of zooming (the zoom overshot the screen edge).

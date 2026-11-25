@@ -5,11 +5,11 @@ exam (M1–M8 requirements, Q1–Q8 report questions).
 
 | # | Ticket | Depends on | Covers | Status |
 |---|---|---|---|---|
-| 01 | [Tooling: lint, format, tests, CI](01-tooling.md) | — | M8, quality | todo |
-| 02 | [Domain model and socket protocol](02-domain-model.md) | 01 | M4, Q3 | todo |
-| 03 | [Close-guess matching algorithm](03-guess-matching.md) | 02 | M4, M5, M8, Q8 | todo |
-| 04 | [Scoring, hints and round timing rules](04-scoring-rules.md) | 02 | M4, M8 | todo |
-| 05 | [Server: rooms lifecycle](05-server-rooms.md) | 02 | M3, M5, M8 | todo |
+| 01 | [Tooling: lint, format, tests, CI](01-tooling.md) | — | M8, quality | done |
+| 02 | [Domain model and socket protocol](02-domain-model.md) | 01 | M4, Q3 | done |
+| 03 | [Close-guess matching algorithm](03-guess-matching.md) | 02 | M4, M5, M8, Q8 | done |
+| 04 | [Scoring, hints and round timing rules](04-scoring-rules.md) | 02 | M4, M8 | done |
+| 05 | [Server: rooms lifecycle](05-server-rooms.md) | 02 | M3, M5, M8 | done |
 | 06 | [App design system and screen skeleton](06-design-system.md) | 01 | M1, M2, M6, Q2 | todo |
 | 07 | [Profile, settings and connection state](07-profile-settings.md) | 06 | M5, M7, Q5, Q7 | todo |
 | 08 | [Create / join / browse rooms + lobby](08-lobby-flow.md) | 05, 07 | M2, M3, Q4, Q6 | todo |

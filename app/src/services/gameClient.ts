@@ -59,6 +59,7 @@ export function connect(url: string): void {
   socket.on('game:state', applyGameView);
   socket.on('game:feed', game.pushFeed);
   socket.on('draw:stroke', game.addStroke);
+  socket.on('draw:progress', game.appendLiveStroke);
   socket.on('draw:undo', game.undoStroke);
   socket.on('draw:clear', game.clearStrokes);
 }

@@ -236,7 +236,8 @@ export class DrawGuessGame implements Game {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  private canDraw(playerId: string): boolean {
+  /** True while this player is the drawer of a running drawing phase. */
+  canDraw(playerId: string): boolean {
     return this.phase === 'drawing' && playerId === this.drawerId;
   }
 

@@ -1,4 +1,10 @@
-import { type BrushSize, simplifyPoints, STROKE_MAX_POINTS, type Stroke } from '@drawtopia/shared';
+import {
+  type BrushSize,
+  simplifyPoints,
+  STROKE_MAX_POINTS,
+  type Stroke,
+  type StrokeProgress,
+} from '@drawtopia/shared';
 import { Canvas, Path } from '@shopify/react-native-skia';
 import { useCallback, useMemo, useState } from 'react';
 import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
@@ -7,6 +13,7 @@ import { useDerivedValue, useSharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { colors, ink } from '../../theme/tokens';
 import { buildStrokePath, strokeWidthFor } from './strokePath';
+import { roundPoint, useStrokeStream } from './useStrokeStream';
 
 export interface Brush {
   color: string;
@@ -19,6 +26,10 @@ interface DrawingCanvasProps {
   editable: boolean;
   brush: Brush;
   onStrokeEnd?: (stroke: Stroke) => void;
+  /** Strokes other players are drawing right now (live drawing), drawn on top. */
+  liveStrokes?: readonly Stroke[];
+  /** When set, the stroke being drawn is streamed while the finger moves. */
+  onStrokeProgress?: (progress: StrokeProgress) => void;
 }
 
 /** Points closer than this (normalized) to the previous one are skipped. */
@@ -31,18 +42,24 @@ const clamp01 = (v: number) => {
   return Math.min(1, Math.max(0, v));
 };
 
-let strokeCounter = 0;
-const newStrokeId = () => `${Date.now().toString(36)}-${(strokeCounter++).toString(36)}`;
-
 /**
  * Square drawing surface. The stroke being drawn lives on the UI thread (shared value →
  * Skia path) so drawing stays smooth; finished strokes are handed to JS, simplified,
  * and reported through `onStrokeEnd`. Coordinates are normalized to 0..1.
  */
-export function DrawingCanvas({ strokes, editable, brush, onStrokeEnd }: DrawingCanvasProps) {
+export function DrawingCanvas({
+  strokes,
+  editable,
+  brush,
+  onStrokeEnd,
+  liveStrokes,
+  onStrokeProgress,
+}: DrawingCanvasProps) {
   const [width, setWidth] = useState(0);
   const widthValue = useSharedValue(0);
   const livePoints = useSharedValue<number[]>([]);
+  const stream = useStrokeStream(brush, onStrokeProgress);
+  const streaming = onStrokeProgress !== undefined;
 
   const onLayout = (e: LayoutChangeEvent) => {
     const w = e.nativeEvent.layout.width;
@@ -52,16 +69,16 @@ export function DrawingCanvas({ strokes, editable, brush, onStrokeEnd }: Drawing
 
   const commit = useCallback(
     (points: number[]) => {
+      const id = stream.finish(); // same id as the live messages, so receivers swap them
       if (points.length < 2 || !onStrokeEnd) return;
       onStrokeEnd({
-        id: newStrokeId(),
+        id,
         color: brush.color,
         size: brush.size,
-        // 4 decimals ≈ 0.04 px on a 400 px canvas: invisible, but much smaller messages.
-        points: simplifyPoints(points, SIMPLIFY_EPSILON).map((v) => Math.round(v * 1e4) / 1e4),
+        points: simplifyPoints(points, SIMPLIFY_EPSILON).map(roundPoint),
       });
     },
-    [brush.color, brush.size, onStrokeEnd],
+    [brush.color, brush.size, onStrokeEnd, stream],
   );
 
   const pan = usePanGesture({
@@ -71,7 +88,10 @@ export function DrawingCanvas({ strokes, editable, brush, onStrokeEnd }: Drawing
     onBegin: (e) => {
       const w = widthValue.value;
       if (w === 0) return;
-      livePoints.value = [clamp01(e.x / w), clamp01(e.y / w)];
+      const x = clamp01(e.x / w);
+      const y = clamp01(e.y / w);
+      livePoints.value = [x, y];
+      if (streaming) scheduleOnRN(stream.start, x, y);
     },
     onUpdate: (e) => {
       const w = widthValue.value;
@@ -87,9 +107,14 @@ export function DrawingCanvas({ strokes, editable, brush, onStrokeEnd }: Drawing
         // Long stroke: send what we have and continue seamlessly from the last point.
         scheduleOnRN(commit, pts);
         livePoints.value = [lastX, lastY, x, y];
+        if (streaming) {
+          scheduleOnRN(stream.start, lastX, lastY);
+          scheduleOnRN(stream.push, x, y);
+        }
         return;
       }
       livePoints.value = [...pts, x, y];
+      if (streaming) scheduleOnRN(stream.push, x, y);
     },
     onFinalize: () => {
       const pts = livePoints.value;
@@ -112,11 +137,23 @@ export function DrawingCanvas({ strokes, editable, brush, onStrokeEnd }: Drawing
     [strokes, width],
   );
 
+  // Other players' strokes in progress change ~20×/s: kept apart so finished paths are not rebuilt.
+  const live = useMemo(
+    () =>
+      (liveStrokes ?? []).map((s) => ({
+        id: s.id,
+        path: buildStrokePath(s.points, width),
+        color: s.color,
+        width: strokeWidthFor(s.size, width),
+      })),
+    [liveStrokes, width],
+  );
+
   return (
     <View style={styles.frame} onLayout={onLayout} accessibilityLabel="Drawing canvas">
       <GestureDetector gesture={pan}>
         <Canvas style={styles.canvas}>
-          {finished.map((s) => (
+          {[...finished, ...live].map((s) => (
             <Path
               key={s.id}
               path={s.path}

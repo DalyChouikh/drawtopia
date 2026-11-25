@@ -3,6 +3,7 @@ import {
   GuessPayloadSchema,
   PassSubmitPayloadSchema,
   type Result,
+  StrokeProgressSchema,
   StrokeSchema,
   err,
   ok,
@@ -72,6 +73,15 @@ export function registerGameHandlers(socket: GameSocket, games: GameManager): vo
     if (ctx.value.game.addStroke(ctx.value.playerId, stroke.data)) {
       socket.to(ctx.value.roomCode).emit('draw:stroke', stroke.data);
     }
+  });
+
+  // Live drawing: relayed as volatile (dropped rather than queued if a player lags), never stored.
+  socket.on('draw:progress', (payload) => {
+    const progress = StrokeProgressSchema.safeParse(payload);
+    const ctx = context();
+    if (!progress.success || !ctx.ok || !(ctx.value.game instanceof DrawGuessGame)) return;
+    if (!ctx.value.game.canDraw(ctx.value.playerId)) return;
+    socket.to(ctx.value.roomCode).volatile.emit('draw:progress', progress.data);
   });
 
   socket.on('draw:undo', () => {

@@ -1,4 +1,5 @@
 import type { DrawGuessView } from '@drawtopia/shared';
+import { useMemo } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
 import { Avatar } from '../../components/ui/Avatar';
@@ -8,7 +9,13 @@ import { InkCard } from '../../components/ui/InkCard';
 import { Txt } from '../../components/ui/Txt';
 import { useCountdown } from '../../hooks/useCountdown';
 import { errorMessage } from '../../services/gameClient';
-import { chooseWord, sendClear, sendStroke, sendUndo } from '../../services/gameApi';
+import {
+  chooseWord,
+  sendClear,
+  sendStroke,
+  sendStrokeProgress,
+  sendUndo,
+} from '../../services/gameApi';
 import { useGameStore } from '../../stores/gameStore';
 import { showToast } from '../../stores/toastStore';
 import { colors, fonts } from '../../theme/tokens';
@@ -31,6 +38,8 @@ interface DrawGuessBoardProps {
 export function DrawGuessBoard({ view, myId, players }: DrawGuessBoardProps) {
   const receivedAt = useGameStore((s) => s.receivedAt);
   const strokes = useGameStore((s) => s.strokes);
+  const liveStrokeMap = useGameStore((s) => s.liveStrokes);
+  const liveStrokes = useMemo(() => Object.values(liveStrokeMap), [liveStrokeMap]);
   const feed = useGameStore((s) => s.feed);
   const seconds = useCountdown(view.remainingMs, receivedAt);
   const { brush, setBrush } = useDrawing();
@@ -107,6 +116,8 @@ export function DrawGuessBoard({ view, myId, players }: DrawGuessBoardProps) {
               editable={isDrawer && view.phase === 'drawing'}
               brush={brush}
               onStrokeEnd={sendStroke}
+              liveStrokes={isDrawer ? undefined : liveStrokes}
+              onStrokeProgress={isDrawer ? sendStrokeProgress : undefined}
             />
             {view.phase === 'reveal' && <RevealCard view={view} players={players} />}
           </View>

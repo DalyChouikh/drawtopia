@@ -1,4 +1,4 @@
-import type { GameView, PassSubmitPayload, Stroke } from '@drawtopia/shared';
+import type { GameView, PassSubmitPayload, Stroke, StrokeProgress } from '@drawtopia/shared';
 import { useGameStore } from '../stores/gameStore';
 import { applyGameView } from './applyGameView';
 import { type ClientResult, emit, request } from './gameClient';
@@ -22,6 +22,11 @@ export const submitPassEntry = (payload: PassSubmitPayload) =>
 export function sendStroke(stroke: Stroke): void {
   useGameStore.getState().addStroke(stroke);
   emit((s) => s.emit('draw:stroke', stroke));
+}
+
+/** Live drawing: points of the stroke being drawn. Volatile — dropped rather than queued if the network lags. */
+export function sendStrokeProgress(progress: StrokeProgress): void {
+  emit((s) => s.volatile.emit('draw:progress', progress));
 }
 
 export function sendUndo(): void {

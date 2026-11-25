@@ -11,6 +11,7 @@ import type {
   GuessPayload,
   GuessVerdictResult,
   PassSubmitPayload,
+  StrokeProgress,
 } from './game';
 import type { Result } from './result';
 import { PlayerProfileSchema, RoomCodeSchema, RoomSettingsSchema } from './validation';
@@ -58,6 +59,8 @@ export interface ClientToServerEvents {
   'game:guess': (payload: GuessPayload, ack: Ack<GuessVerdictResult>) => void;
   /** Drawer only. Fire-and-forget: strokes are relayed to the other players. */
   'draw:stroke': (stroke: Stroke) => void;
+  /** Drawer only, fire-and-forget: points of the stroke being drawn (live drawing). */
+  'draw:progress': (progress: StrokeProgress) => void;
   'draw:undo': () => void;
   'draw:clear': () => void;
   'pass:submit': (payload: PassSubmitPayload, ack: Ack<null>) => void;
@@ -75,6 +78,7 @@ export interface ServerToClientEvents {
   'game:state': (view: GameView) => void;
   'game:feed': (event: FeedEvent) => void;
   'draw:stroke': (stroke: Stroke) => void;
+  'draw:progress': (progress: StrokeProgress) => void;
   'draw:undo': () => void;
   'draw:clear': () => void;
 }

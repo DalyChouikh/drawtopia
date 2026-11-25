@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { STROKE_MAX_POINTS } from './constants';
+import { STROKE_PROGRESS_MAX_POINTS, StrokeProgressSchema } from './game';
 import { CreateRoomPayloadSchema, JoinRoomPayloadSchema } from './protocol';
 import { GuessSchema, NicknameSchema, StrokeSchema } from './validation';
 
@@ -61,5 +62,19 @@ describe('GuessSchema', () => {
   it('rejects empty and whitespace-only guesses', () => {
     expect(GuessSchema.safeParse('').success).toBe(false);
     expect(GuessSchema.safeParse('   ').success).toBe(false);
+  });
+});
+
+describe('StrokeProgressSchema (live drawing)', () => {
+  const base = { id: 's1', color: '#1A1A1A', size: 4 };
+
+  it('accepts a small batch of new points', () => {
+    expect(StrokeProgressSchema.safeParse({ ...base, points: [0.1, 0.2] }).success).toBe(true);
+  });
+
+  it('rejects empty and oversized batches (negative)', () => {
+    const tooMany = Array.from({ length: STROKE_PROGRESS_MAX_POINTS * 2 + 2 }, () => 0.5);
+    expect(StrokeProgressSchema.safeParse({ ...base, points: [] }).success).toBe(false);
+    expect(StrokeProgressSchema.safeParse({ ...base, points: tooMany }).success).toBe(false);
   });
 });

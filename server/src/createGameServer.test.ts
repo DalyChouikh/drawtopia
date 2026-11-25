@@ -96,6 +96,22 @@ describe('game server (real sockets)', () => {
     });
     await miaGetsStroke;
 
+    // Live drawing: the drawer's in-progress points reach the others; a guesser's are dropped.
+    const progress = {
+      id: 'live-1',
+      color: '#1A1A1A',
+      size: 10 as const,
+      points: [0.2, 0.2, 0.3, 0.3],
+    };
+    const miaGetsProgress = new Promise((resolve) => mia.once('draw:progress', resolve));
+    host.emit('draw:progress', progress);
+    expect(await miaGetsProgress).toEqual(progress);
+    let hostGotGuesserProgress = false;
+    host.once('draw:progress', () => (hostGotGuesserProgress = true));
+    nova.emit('draw:progress', { ...progress, id: 'cheat' });
+    await new Promise((r) => setTimeout(r, 100));
+    expect(hostGotGuesserProgress).toBe(false);
+
     // Nobody but the drawer has the word; a correct guess is announced to the room.
     const miaSees = await mia.emitWithAck('game:sync');
     expect(miaSees.ok && 'word' in miaSees.value && miaSees.value.word).toBeFalsy();

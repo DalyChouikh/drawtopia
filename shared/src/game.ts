@@ -14,6 +14,10 @@ export const REVEAL_SECONDS = 5;
 /** Extra time the server waits for late Draw & Pass submissions before filling them in. */
 export const PASS_SUBMIT_GRACE_MS = 2000;
 export const MAX_STROKES_PER_DRAWING = 300;
+/** While a finger moves, new points are sent this often (live drawing). */
+export const STROKE_STREAM_INTERVAL_MS = 50;
+/** Upper bound on points in one live-drawing message (x,y pairs). */
+export const STROKE_PROGRESS_MAX_POINTS = 64;
 
 export type DrawGuessPhase = 'choosing' | 'drawing' | 'reveal' | 'finished';
 
@@ -70,6 +74,19 @@ export type FeedEvent =
 
 export const ChooseWordPayloadSchema = z.object({ word: z.string().min(1).max(40) });
 export const GuessPayloadSchema = z.object({ text: GuessSchema });
+
+/**
+ * Live drawing: the points added to stroke `id` since the previous message. Receivers append
+ * them; the final `draw:stroke` with the same id later replaces the live version.
+ */
+export const StrokeProgressSchema = StrokeSchema.extend({
+  points: z
+    .array(z.number().min(0).max(1))
+    .min(2)
+    .max(STROKE_PROGRESS_MAX_POINTS * 2)
+    .refine((p) => p.length % 2 === 0, 'Points come in x,y pairs'),
+});
+export type StrokeProgress = z.infer<typeof StrokeProgressSchema>;
 export const PassSubmitPayloadSchema = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('text'),

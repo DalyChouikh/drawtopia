@@ -3,48 +3,28 @@ import {
   JoinRoomPayloadSchema,
   type JoinedRoom,
   RejoinRoomPayloadSchema,
-  type Result,
   type RoomSnapshot,
   UpdateSettingsPayloadSchema,
   err,
   ok,
 } from '@drawtopia/shared';
-import type { z } from 'zod';
+import { type GameManager, playerChannel } from '../game/GameManager';
 import type { RoomManager } from '../rooms/RoomManager';
+import { parse, respond } from './respond';
 import type { GameServer, GameSocket } from './types';
 
 export interface RoomHandlerContext {
   io: GameServer;
   rooms: RoomManager;
+  games: GameManager;
   /** How long a disconnected player keeps their seat. */
   reconnectGraceMs: number;
   /** Removal timers of disconnected players, by player id. */
   pendingRemovals: Map<string, NodeJS.Timeout>;
 }
 
-/**
- * Runs a request and answers through the acknowledgement callback.
- * Invalid payloads and unexpected exceptions become error results; the server never crashes.
- */
-function respond<T>(ack: unknown, run: () => Result<T>): void {
-  if (typeof ack !== 'function') return; // a client that does not wait for an answer
-  let result: Result<T>;
-  try {
-    result = run();
-  } catch (error) {
-    console.error('[rooms] handler failed', error);
-    result = err('INTERNAL_ERROR');
-  }
-  (ack as (r: Result<T>) => void)(result);
-}
-
-function parse<S extends z.ZodType>(schema: S, payload: unknown): Result<z.infer<S>> {
-  const parsed = schema.safeParse(payload);
-  return parsed.success ? ok(parsed.data) : err('INVALID_PAYLOAD');
-}
-
 export function registerRoomHandlers(socket: GameSocket, ctx: RoomHandlerContext): void {
-  const { io, rooms } = ctx;
+  const { io, rooms, games } = ctx;
 
   const broadcast = (room: RoomSnapshot | null) => {
     if (room) io.to(room.code).emit('room:updated', room);
@@ -54,7 +34,7 @@ export function registerRoomHandlers(socket: GameSocket, ctx: RoomHandlerContext
   const enterRoom = (joined: JoinedRoom) => {
     socket.data.playerId = joined.playerId;
     socket.data.roomCode = joined.room.code;
-    void socket.join(joined.room.code);
+    void socket.join([joined.room.code, playerChannel(joined.playerId)]);
     broadcast(joined.room);
   };
 
@@ -62,8 +42,11 @@ export function registerRoomHandlers(socket: GameSocket, ctx: RoomHandlerContext
   const leaveCurrentRoom = () => {
     const { playerId, roomCode } = socket.data;
     if (!playerId || !roomCode) return;
+    games.setConnected(roomCode, playerId, false);
     const left = rooms.leaveRoom(playerId);
+    if (left.ok && left.value === null) games.dispose(roomCode); // room closed
     void socket.leave(roomCode);
+    void socket.leave(playerChannel(playerId));
     socket.data.playerId = undefined;
     socket.data.roomCode = undefined;
     if (left.ok) broadcast(left.value);
@@ -100,6 +83,8 @@ export function registerRoomHandlers(socket: GameSocket, ctx: RoomHandlerContext
         clearTimeout(ctx.pendingRemovals.get(input.value.playerId));
         ctx.pendingRemovals.delete(input.value.playerId);
         enterRoom(rejoined.value);
+        games.setConnected(input.value.code, input.value.playerId, true);
+        games.sendViewTo(input.value.code, input.value.playerId);
       }
       return rejoined;
     }),
@@ -135,20 +120,23 @@ export function registerRoomHandlers(socket: GameSocket, ctx: RoomHandlerContext
       if (started.ok) {
         broadcast(started.value);
         io.to(started.value.code).emit('game:started', started.value);
+        games.start(started.value);
       }
       return started.ok ? ok(null) : started;
     }),
   );
 
   socket.on('disconnect', () => {
-    const { playerId } = socket.data;
-    if (!playerId) return;
+    const { playerId, roomCode } = socket.data;
+    if (!playerId || !roomCode) return;
     broadcast(rooms.setConnected(playerId, false));
+    games.setConnected(roomCode, playerId, false);
 
     // Keep the seat for a while so a phone that lost Wi-Fi can come back.
     const timer = setTimeout(() => {
       ctx.pendingRemovals.delete(playerId);
       const left = rooms.leaveRoom(playerId);
+      if (left.ok && left.value === null) games.dispose(roomCode);
       if (left.ok) broadcast(left.value);
     }, ctx.reconnectGraceMs);
     timer.unref();

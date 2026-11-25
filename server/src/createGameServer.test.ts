@@ -68,6 +68,47 @@ describe('game server (real sockets)', () => {
     await everyoneStarts;
   });
 
+  it('plays a Draw & Guess turn end to end: word stays secret, guesses are scored', async () => {
+    const [host, nova, mia] = await Promise.all([newClient(), newClient(), newClient()]);
+    const created = await host.emitWithAck('room:create', { profile: profile('Host'), settings });
+    if (!created.ok) throw new Error(created.error);
+    const { code } = created.value.room;
+    await nova.emitWithAck('room:join', { code, profile: profile('Nova') });
+    await mia.emitWithAck('room:join', { code, profile: profile('Mia') });
+    await host.emitWithAck('room:start');
+
+    // The host draws first and is the only one offered words.
+    const hostView = await host.emitWithAck('game:sync');
+    const novaView = await nova.emitWithAck('game:sync');
+    if (!hostView.ok || !novaView.ok || hostView.value.mode !== 'draw-guess') throw new Error();
+    expect(novaView.value).toMatchObject({ phase: 'choosing' });
+    expect('wordChoices' in novaView.value && novaView.value.wordChoices).toBeFalsy();
+    const word = hostView.value.wordChoices![0]!;
+    expect(await host.emitWithAck('game:choose-word', { word })).toEqual({ ok: true, value: null });
+
+    // Strokes from the drawer reach the other players.
+    const miaGetsStroke = new Promise((resolve) => mia.once('draw:stroke', resolve));
+    host.emit('draw:stroke', {
+      id: 's1',
+      color: '#1A1A1A',
+      size: 10,
+      points: [0.1, 0.1, 0.2, 0.2],
+    });
+    await miaGetsStroke;
+
+    // Nobody but the drawer has the word; a correct guess is announced to the room.
+    const miaSees = await mia.emitWithAck('game:sync');
+    expect(miaSees.ok && 'word' in miaSees.value && miaSees.value.word).toBeFalsy();
+    const announced = new Promise((resolve) =>
+      mia.on('game:feed', (e) => e.kind === 'guessed' && resolve(e)),
+    );
+    expect(await nova.emitWithAck('game:guess', { text: word })).toEqual({
+      ok: true,
+      value: { verdict: 'correct' },
+    });
+    expect(await announced).toMatchObject({ kind: 'guessed' });
+  });
+
   it('rejects a malformed payload without crashing (negative)', async () => {
     const client = await newClient();
     const result = await client.emitWithAck('room:join', {

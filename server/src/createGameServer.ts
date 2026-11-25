@@ -1,7 +1,9 @@
 import { createServer, type Server as HttpServer } from 'node:http';
 import { RECONNECT_GRACE_MS } from '@drawtopia/shared';
 import { Server } from 'socket.io';
+import { GameManager } from './game/GameManager';
 import { RoomManager } from './rooms/RoomManager';
+import { registerGameHandlers } from './socket/gameHandlers';
 import { registerRoomHandlers } from './socket/roomHandlers';
 import type { GameServer } from './socket/types';
 
@@ -15,6 +17,7 @@ export interface GameServerInstance {
   httpServer: HttpServer;
   io: GameServer;
   rooms: RoomManager;
+  games: GameManager;
   close: () => Promise<void>;
 }
 
@@ -36,10 +39,14 @@ export function createGameServer(options: GameServerOptions = {}): GameServerIns
     cors: { origin: options.corsOrigin ?? '*' },
   });
 
+  const games = new GameManager(io, rooms);
+
   io.on('connection', (socket) => {
+    registerGameHandlers(socket, games);
     registerRoomHandlers(socket, {
       io,
       rooms,
+      games,
       reconnectGraceMs: options.reconnectGraceMs ?? RECONNECT_GRACE_MS,
       pendingRemovals,
     });
@@ -48,8 +55,9 @@ export function createGameServer(options: GameServerOptions = {}): GameServerIns
   const close = async () => {
     pendingRemovals.forEach(clearTimeout);
     pendingRemovals.clear();
+    games.disposeAll();
     await io.close(); // also closes the HTTP server
   };
 
-  return { httpServer, io, rooms, close };
+  return { httpServer, io, rooms, games, close };
 }

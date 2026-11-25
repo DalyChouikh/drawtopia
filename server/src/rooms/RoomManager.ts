@@ -159,6 +159,14 @@ export class RoomManager {
     return ok(this.snapshot(room));
   }
 
+  /** A finished game sends the room back to the lobby, so the host can start another one. */
+  endGame(code: string): RoomSnapshot | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    room.status = 'lobby';
+    return this.snapshot(room);
+  }
+
   getRoomOf(playerId: string): RoomSnapshot | undefined {
     const room = this.roomOf(playerId);
     return room && this.snapshot(room);

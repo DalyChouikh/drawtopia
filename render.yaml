@@ -1,0 +1,13 @@
+# Render Blueprint: deploys the game server (server/ + shared/) as a free web service.
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: drawtopia-server
+    runtime: node
+    plan: free
+    region: frankfurt
+    # Installs only the server workspace (and the shared package it links), not the Expo app.
+    buildCommand: npm ci --workspace @drawtopia/server
+    startCommand: npm run start --workspace @drawtopia/server
+    healthCheckPath: /health
+    autoDeployTrigger: commit

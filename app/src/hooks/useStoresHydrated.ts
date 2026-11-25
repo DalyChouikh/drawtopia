@@ -1,9 +1,10 @@
 import { useSyncExternalStore } from 'react';
+import { useHistoryStore } from '../stores/historyStore';
 import { useProfileStore } from '../stores/profileStore';
 import { useSessionStore } from '../stores/sessionStore';
 import { useSettingsStore } from '../stores/settingsStore';
 
-const persistedStores = [useProfileStore, useSettingsStore, useSessionStore];
+const persistedStores = [useProfileStore, useSettingsStore, useSessionStore, useHistoryStore];
 
 const allHydrated = () => persistedStores.every((store) => store.persist.hasHydrated());
 

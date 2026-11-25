@@ -1,11 +1,12 @@
 import type { GameView, PassSubmitPayload, Stroke } from '@drawtopia/shared';
 import { useGameStore } from '../stores/gameStore';
+import { applyGameView } from './applyGameView';
 import { type ClientResult, emit, request } from './gameClient';
 
 /** Asks the server for this player's current view (on screen open or after a reconnect). */
 export async function syncGame(): Promise<ClientResult<GameView>> {
   const result = await request((s) => s.emitWithAck('game:sync'));
-  if (result.ok) useGameStore.getState().setView(result.value);
+  if (result.ok) applyGameView(result.value);
   return result;
 }
 

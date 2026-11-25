@@ -10,6 +10,7 @@ import { type Socket, io } from 'socket.io-client';
 import { useGameStore } from '../stores/gameStore';
 import { useSessionStore } from '../stores/sessionStore';
 import { showToast } from '../stores/toastStore';
+import { applyGameView } from './applyGameView';
 import { useConnectionStore } from './connectionStore';
 
 type GameSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -55,7 +56,7 @@ export function connect(url: string): void {
   socket.on('game:started', applyRoomUpdate);
 
   const game = useGameStore.getState();
-  socket.on('game:state', game.setView);
+  socket.on('game:state', applyGameView);
   socket.on('game:feed', game.pushFeed);
   socket.on('draw:stroke', game.addStroke);
   socket.on('draw:undo', game.undoStroke);

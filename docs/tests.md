@@ -25,7 +25,7 @@ chaîne, historique hors ligne).
 
 ## Tests automatiques (Vitest)
 
-`npm test` → **84 tests, tous passants** (50 dans `shared/`, 34 dans `server/`), exécutés aussi à chaque push
+`npm test` → **86 tests, tous passants** (52 dans `shared/`, 34 dans `server/`), exécutés aussi à chaque push
 par GitHub Actions. Exemples :
 
 | Fichier | Ce qui est vérifié |

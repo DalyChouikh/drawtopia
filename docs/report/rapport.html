@@ -58,7 +58,7 @@ deux dans une même application, avec des salons publics ou privés et un simple
 <p><b>Objectifs mesurables.</b> (1) une partie à 3 joueurs se joue de bout en bout sur téléphone ; (2) un dessin
 apparaît chez les autres joueurs en moins de 150 ms sur le même réseau (mesuré : ≈ 91 ms via le serveur en ligne
 à Francfort) ; (3) une faute de frappe proche du mot est signalée « close » ; (4) profil et historique survivent
-à la fermeture de l'application ; (5) au moins 6 tests documentés dont 2 négatifs (ici 6 scénarios + 84 tests
+à la fermeture de l'application ; (5) au moins 6 tests documentés dont 2 négatifs (ici 6 scénarios + 86 tests
 automatiques).</p>
 
 <table>
@@ -78,8 +78,9 @@ automatiques).</p>
       l'historique du téléphone (20 parties max), consultable hors ligne, supprimable.</td><td>Réalisé</td></tr>
 </table>
 <p><b>Demandé / réalisé / non réalisé.</b> Tout le périmètre de la fiche est réalisé. Ajouts : historique local,
-indices de lettres, reconnexion automatique, serveur déployé (Render). Non réalisé : transmission du dessin point
-par point (le trait est envoyé quand le doigt se lève) ; application installable sur l'App Store (test via Expo Go).</p>
+indices de lettres, reconnexion automatique, dessin en direct (points envoyés toutes les 50 ms pendant le trait),
+serveur déployé (Render), essais sur téléphones Android et iPhone réels. Non réalisé : application publiée sur
+l'App Store ou le Play Store (test via Expo Go).</p>
 
 <div class="shots">
   <figure><img src="../../captures/01-home.png" alt=""><figcaption>Accueil (action 1)</figcaption></figure>
@@ -213,7 +214,7 @@ puis serveur Render (Francfort). Les joueurs 2 et 3 sont simulés par un script 
   <tr><td>T5</td><td>Négatif : pseudo vide ; code <code>ZZZZ</code></td><td>Refus avec message, application stable</td><td>« At least 2 characters » ; « No room with code ZZZZ »</td><td>OK</td></tr>
   <tr><td>T6</td><td>Négatif : pseudo <code>daly</code> déjà pris ; 2 joueurs ; serveur arrêté</td><td>Refus doublon ; démarrage impossible ; hors ligne signalé</td><td><code>NICKNAME_TAKEN</code> ; « Need 1 more player » ; « Offline: game server unreachable »</td><td>OK</td></tr>
 </table>
-<p><b>Tests automatiques.</b> <code>npm test</code> exécute <b>84 tests Vitest</b> (50 dans <code>shared/</code>, 34 dans
+<p><b>Tests automatiques.</b> <code>npm test</code> exécute <b>86 tests Vitest</b> (52 dans <code>shared/</code>, 34 dans
 <code>server/</code>), relancés par GitHub Actions à chaque push : algorithme « close » (comparé à une implémentation
 de référence sur 2 000 paires aléatoires), rotation Draw &amp; Pass pour 3 à 8 joueurs, chaque code d'erreur du
 serveur, moteurs de jeu avec minuteurs simulés, et une partie complète avec 3 vrais clients Socket.IO.</p>
@@ -376,11 +377,10 @@ l'unique erreur est une inversion de deux lettres voisines. <b>Test qui la valid
 <h2>5. Bilan et sources</h2>
 <p><b>Réalisé.</b> Les deux modes de jeu fonctionnent de bout en bout à 3 joueurs, avec salons publics et privés,
 réglages par l'hôte, détection des fautes proches, indices, scores, révélation des chaînes, historique hors ligne,
-reconnexion, et un serveur déployé (Render) utilisable en 4G. Qualité : TypeScript strict, 84 tests, intégration
-continue. <b>Non réalisé / limites.</b> Dessin transmis à la fin de chaque trait ; pas d'application publiée sur
-les stores ; salons en mémoire (perdus au redémarrage du serveur) ; serveur gratuit mis en veille après 15 minutes.
-<b>Amélioration réaliste.</b> Transmettre le trait en cours toutes les 50 ms (les traits sont déjà simplifiés et
-arrondis à 4 décimales pour limiter le volume) et persister les salons dans Redis pour survivre aux redéploiements.</p>
+reconnexion, et un serveur déployé (Render) utilisable en 4G. Qualité : TypeScript strict, 86 tests, intégration
+continue. <b>Non réalisé / limites.</b> Pas d'application publiée sur les stores ; les messages de dessin en direct
+sont « volatils » (un lot peut être perdu sur un réseau saturé ; le trait final, lui, est toujours livré) ; salons en mémoire (perdus au redémarrage du serveur) ; serveur gratuit mis en veille après 15 minutes.
+<b>Amélioration réaliste.</b> Persister les salons dans Redis pour survivre aux redéploiements.</p>
 <p><b>Dépendances principales.</b> Expo SDK 58, React Native 0.88, expo-router, @shopify/react-native-skia,
 react-native-reanimated, react-native-gesture-handler, zustand, AsyncStorage, socket.io, zod ; Vitest, ESLint,
 Prettier. Polices Google Fonts (licence OFL). Documentation : docs.expo.dev, socket.io, render.com/docs.</p>

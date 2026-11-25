@@ -10,10 +10,10 @@ exam (M1–M8 requirements, Q1–Q8 report questions).
 | 03 | [Close-guess matching algorithm](03-guess-matching.md) | 02 | M4, M5, M8, Q8 | done |
 | 04 | [Scoring, hints and round timing rules](04-scoring-rules.md) | 02 | M4, M8 | done |
 | 05 | [Server: rooms lifecycle](05-server-rooms.md) | 02 | M3, M5, M8 | done |
-| 06 | [App design system and screen skeleton](06-design-system.md) | 01 | M1, M2, M6, Q2 | todo |
-| 07 | [Profile, settings and connection state](07-profile-settings.md) | 06 | M5, M7, Q5, Q7 | todo |
-| 08 | [Create / join / browse rooms + lobby](08-lobby-flow.md) | 05, 07 | M2, M3, Q4, Q6 | todo |
-| 09 | [Drawing canvas (Skia)](09-canvas.md) | 06 | M3, M6, Q1 | todo |
+| 06 | [App design system and screen skeleton](06-design-system.md) | 01 | M1, M2, M6, Q2 | done |
+| 07 | [Profile, settings and connection state](07-profile-settings.md) | 06 | M5, M7, Q5, Q7 | done |
+| 08 | [Create / join / browse rooms + lobby](08-lobby-flow.md) | 05, 07 | M2, M3, Q4, Q6 | done |
+| 09 | [Drawing canvas (Skia)](09-canvas.md) | 06 | M3, M6, Q1 | done |
 | 10 | [Draw & Guess game loop](10-draw-and-guess.md) | 03, 04, 08, 09 | M3, M4 | todo |
 | 11 | [Draw & Pass game loop](11-draw-and-pass.md) | 08, 09 | M3, M4 | todo |
 | 12 | [Results and local game history](12-history.md) | 10, 11 | M3, M7 | todo |

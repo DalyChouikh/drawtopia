@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><title>DrawTopia — D bubble</title>
+ <g transform="translate(-9 -6)">
+  <path transform="translate(12 12)" fill="#000" d="M40 28H124A100 100 0 0 1 124 228H40Z"/>
+  <path fill="#fff" stroke="#000" stroke-width="12" stroke-linejoin="round" d="M40 28H124A100 100 0 0 1 124 228H40Z"/>
+  <path fill="#000" fill-rule="evenodd" d="M86 78H124A50 50 0 0 1 124 178H112L82 204L89 178H86ZM98 92V172L106 164H124A36 36 0 0 0 124 92Z"/>
+ </g>
+</svg>

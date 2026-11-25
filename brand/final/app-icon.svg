@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><title>DrawTopia app icon</title>
+  <rect width="1024" height="1024" fill="#3D7BFF"/>
+  <g transform="translate(212 196) scale(2.4)">
+  <path fill="#1A1A1A" d="M36 26H126A106 106 0 0 1 126 238H36Z"/><path fill="#1A1A1A" d="M24 14H114A106 106 0 0 1 114 226H24Z"/><path fill="#FFD23F" d="M36 26H114A94 94 0 0 1 114 214H36Z"/>
+  <path fill="#1A1A1A" fill-rule="evenodd" d="M76 70H114A50 50 0 0 1 114 170H102L72 196L79 170H76ZM88 84V164L96 156H114A36 36 0 0 0 114 84Z"/><path fill="#FBF7EE" d="M88 84V164L96 156H114A36 36 0 0 0 114 84Z"/></g>
+</svg>

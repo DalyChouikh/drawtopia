@@ -1,0 +1,14 @@
+{
+  "name": "@drawtopia/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Game rules, types and algorithms shared by the app and the server",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

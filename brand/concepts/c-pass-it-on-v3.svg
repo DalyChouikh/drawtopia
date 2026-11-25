@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><title>DrawTopia — pass it on</title>
+ <g transform="translate(-5 -3)">
+  <g transform="rotate(-10 90 130)">
+    <rect x="30" y="56" width="118" height="150" rx="18" transform="translate(12 12)" fill="#000"/>
+    <rect x="30" y="56" width="118" height="150" rx="18" fill="#fff" stroke="#000" stroke-width="14"/>
+  </g>
+  <g transform="rotate(9 166 122)">
+    <rect x="108" y="46" width="118" height="150" rx="18" transform="translate(12 12)" fill="#000"/>
+    <rect x="108" y="46" width="118" height="150" rx="18" fill="#fff" stroke="#000" stroke-width="14"/>
+  </g>
+  <path fill="none" stroke="#000" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" d="M60 162C76 118 100 116 112 142C124 168 152 166 166 128C176 100 192 96 200 112"/>
+ </g>
+</svg>

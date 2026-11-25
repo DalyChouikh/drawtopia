@@ -1,0 +1,21 @@
+{
+  "name": "@drawtopia/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Real-time game server (Socket.IO) for DrawTopia",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@drawtopia/shared": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.10",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3"
+  }
+}

@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <path transform="translate(12 12)" fill="#000" d="M40 28H124A100 100 0 0 1 124 228H40Z"/>
+  <path fill="#fff" stroke="#000" stroke-width="12" stroke-linejoin="round" fill-rule="evenodd" d="M40 28H124A100 100 0 0 1 124 228H40ZM88 80V160H96L84 188L118 160H124A40 40 0 0 0 124 80Z"/>
+</svg>

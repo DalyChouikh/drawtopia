@@ -1,0 +1,22 @@
+{
+  "name": "drawtopia",
+  "private": true,
+  "description": "DrawTopia — multiplayer drawing party game (Draw & Guess, Draw & Pass)",
+  "workspaces": [
+    "shared",
+    "server",
+    "app"
+  ],
+  "scripts": {
+    "app": "npm run start -w @drawtopia/app",
+    "server": "npm run dev -w @drawtopia/server",
+    "test": "npm test -w @drawtopia/shared -w @drawtopia/server --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "overrides": {
+    "react": "19.3.0"
+  }
+}

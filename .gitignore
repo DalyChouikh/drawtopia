@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+
+# Assignment PDFs contain personal details — keep them out of the public repo
+*.pdf
+
+# build / caches
+dist/
+coverage/
+*.tsbuildinfo
+.expo/
+
+# env
+.env
+.env*.local
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

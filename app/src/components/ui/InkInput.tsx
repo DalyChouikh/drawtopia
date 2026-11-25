@@ -61,6 +61,8 @@ const styles = StyleSheet.create({
     ...typography.input,
     minHeight: TOUCH_MIN,
     paddingHorizontal: 14,
+    paddingVertical: 10,
+    textAlignVertical: 'center',
     backgroundColor: colors.white,
     borderWidth: ink.border,
     borderColor: colors.ink,

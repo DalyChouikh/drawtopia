@@ -9,6 +9,7 @@ import { Txt } from '../components/ui/Txt';
 import { errorMessage } from '../services/gameClient';
 import { haptics } from '../services/haptics';
 import { joinRoom } from '../services/roomsApi';
+import { StyleSheet } from 'react-native';
 import { fonts } from '../theme/tokens';
 
 /** Fiche action 1: join an existing room with its 4-character code. */
@@ -63,14 +64,21 @@ export default function JoinRoomScreen() {
           returnKeyType="go"
           onSubmitEditing={join}
           error={error}
-          style={{
-            fontFamily: fonts.sansBold,
-            fontSize: 32,
-            letterSpacing: 12,
-            textAlign: 'center',
-          }}
+          style={styles.codeInput}
         />
       </InkCard>
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  // Big letters need a taller field; no lineHeight on a TextInput (it crops the glyphs).
+  codeInput: {
+    fontFamily: fonts.sansBold,
+    fontSize: 32,
+    letterSpacing: 12,
+    textAlign: 'center',
+    minHeight: 72,
+    paddingVertical: 8,
+  },
+});

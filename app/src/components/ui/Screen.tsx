@@ -61,7 +61,8 @@ export function Screen({ children, title, onBack, scroll = true, footer }: Scree
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  content: { padding: 16, gap: 16, flexGrow: 1 },
+  // Extra bottom space so the last card (and its hard shadow) is never flush with the footer.
+  content: { padding: 16, paddingBottom: 28, gap: 16, flexGrow: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -81,5 +82,14 @@ const styles = StyleSheet.create({
   },
   backPressed: { backgroundColor: colors.yellow },
   title: { flex: 1 },
-  footer: { paddingHorizontal: 16, paddingBottom: 8, gap: 12 },
+  // A solid strip with an ink edge: content scrolling underneath reads as "more below", not as cut off.
+  footer: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+    gap: 12,
+    borderTopWidth: ink.border,
+    borderTopColor: colors.ink,
+    backgroundColor: colors.paper,
+  },
 });

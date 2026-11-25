@@ -83,9 +83,13 @@ export function InkButton({
         ) : (
           <>
             {icon}
+            {/* One line, shrinking a little if needed, so a long label never wraps into the border. */}
             <Txt
               variant={size === 'lg' ? 'title' : 'heading'}
               color={inactive ? colors.muted : onSurface[color]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.6}
               style={styles.label}
             >
               {label}
@@ -122,5 +126,5 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   faceLarge: { minHeight: 64 },
-  label: { includeFontPadding: false },
+  label: { flexShrink: 1, textAlign: 'center' },
 });

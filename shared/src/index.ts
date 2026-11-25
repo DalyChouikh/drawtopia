@@ -4,6 +4,7 @@ export * from './errors';
 export * from './protocol';
 export * from './result';
 export * from './validation';
+export * from './drawing/simplify';
 export * from './guess/matchGuess';
 export * from './rules/hints';
 export * from './rules/random';

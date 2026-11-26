@@ -28,8 +28,14 @@ interface SettingsState {
   /** Empty string = use the default server. */
   customServerUrl: string;
   haptics: boolean;
+  /** Sound effects (taps, guesses, timer). */
+  sound: boolean;
+  /** Background music loop. */
+  music: boolean;
   setCustomServerUrl: (url: string) => void;
   setHaptics: (enabled: boolean) => void;
+  setSound: (enabled: boolean) => void;
+  setMusic: (enabled: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -37,8 +43,12 @@ export const useSettingsStore = create<SettingsState>()(
     (set) => ({
       customServerUrl: '',
       haptics: true,
+      sound: true,
+      music: true,
       setCustomServerUrl: (customServerUrl) => set({ customServerUrl }),
       setHaptics: (haptics) => set({ haptics }),
+      setSound: (sound) => set({ sound }),
+      setMusic: (music) => set({ music }),
     }),
     { name: storageKey('settings'), storage: persistentStorage, version: 1 },
   ),

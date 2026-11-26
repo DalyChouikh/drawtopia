@@ -16,6 +16,7 @@
 | react-native-gesture-handler, react-native-reanimated, react-native-worklets | Geste de dessin sur le fil d'interface, animations |
 | zustand + @react-native-async-storage/async-storage | État de l'application et persistance |
 | expo-haptics, expo-clipboard, expo-font, expo-splash-screen, expo-status-bar | Vibrations, copie du code, polices, écran de lancement |
+| expo-audio | Effets sonores et musique de fond |
 | socket.io / socket.io-client | Communication temps réel |
 | zod | Validation des données reçues/envoyées |
 | tsx | Exécution du serveur TypeScript |
@@ -23,6 +24,9 @@
 
 ## Ressources
 
+- **Sons et musique** (`app/assets/sounds/`) : créés pour le projet, synthétisés par le script
+  `scripts/make-sounds.py` (Python, bibliothèque standard uniquement : ondes carrées, triangulaires et
+  sinusoïdales). Aucun son ni aucune musique de tiers, donc aucune question de droits d'auteur.
 - **Polices** (Google Fonts, licence SIL Open Font License) via `@expo-google-fonts` : Permanent Marker,
   Patrick Hand, Space Grotesk.
 - **Logo** : créé pour le projet (`brand/`), lettres du mot-symbole issues de la police Permanent Marker

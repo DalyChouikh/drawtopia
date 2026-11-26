@@ -9,9 +9,11 @@ import { InkCard } from '../../components/ui/InkCard';
 import { InkInput } from '../../components/ui/InkInput';
 import { Txt } from '../../components/ui/Txt';
 import { useCountdown } from '../../hooks/useCountdown';
+import { useKeyboardVisible } from '../../hooks/useKeyboardVisible';
 import { errorMessage } from '../../services/gameClient';
 import { submitPassEntry } from '../../services/gameApi';
 import { haptics } from '../../services/haptics';
+import { playSound } from '../../services/sounds';
 import { useGameStore } from '../../stores/gameStore';
 import { showToast } from '../../stores/toastStore';
 import { colors } from '../../theme/tokens';
@@ -43,6 +45,8 @@ function PassStep({ view, myId, players }: DrawPassBoardProps) {
   const [sending, setSending] = useState(false);
   const submitted = myId !== null && view.submittedIds.includes(myId);
   const autoSubmitted = useRef(false);
+  // While typing a description, the drawing shrinks so the field and Send fit above the keyboard.
+  const keyboardVisible = useKeyboardVisible();
 
   const submit = async () => {
     setSending(true);
@@ -52,8 +56,10 @@ function PassStep({ view, myId, players }: DrawPassBoardProps) {
         : { kind: 'drawing', strokes: drawing.strokes },
     );
     setSending(false);
-    if (result.ok) haptics.success();
-    else if (result.error !== 'NOT_ALLOWED') showToast(errorMessage(result.error), 'error');
+    if (result.ok) {
+      haptics.success();
+      playSound('sent');
+    } else if (result.error !== 'NOT_ALLOWED') showToast(errorMessage(result.error), 'error');
   };
 
   // Time's up: send whatever is there (the server fills in anything still missing).
@@ -74,7 +80,7 @@ function PassStep({ view, myId, players }: DrawPassBoardProps) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TimerPill seconds={seconds} />
+        <TimerPill seconds={seconds} tick={!submitted} />
         <Txt variant="heading" style={styles.flex} numberOfLines={2}>
           {instruction}
         </Txt>
@@ -92,7 +98,9 @@ function PassStep({ view, myId, players }: DrawPassBoardProps) {
             {view.prompt.kind === 'text' ? (
               <Txt variant="title">{view.prompt.text}</Txt>
             ) : (
-              <DrawingCanvas strokes={view.prompt.strokes} editable={false} brush={NO_BRUSH} />
+              <View style={keyboardVisible ? styles.smallPrompt : undefined}>
+                <DrawingCanvas strokes={view.prompt.strokes} editable={false} brush={NO_BRUSH} />
+              </View>
             )}
           </InkCard>
         </Animated.View>
@@ -155,6 +163,7 @@ const styles = StyleSheet.create({
   container: { gap: 14 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   flex: { flex: 1 },
+  smallPrompt: { width: '50%', alignSelf: 'center' },
   avatars: {
     flexDirection: 'row',
     flexWrap: 'wrap',

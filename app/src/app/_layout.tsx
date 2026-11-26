@@ -11,6 +11,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ToastHost } from '../components/ui/ToastHost';
 import { useStoresHydrated } from '../hooks/useStoresHydrated';
 import { connect } from '../services/gameClient';
+import { initGameSounds } from '../services/gameSounds';
+import { initSounds } from '../services/sounds';
 import { useServerUrl } from '../stores/settingsStore';
 import { colors } from '../theme/tokens';
 
@@ -19,8 +21,8 @@ void SplashScreen.preventAutoHideAsync();
 
 /**
  * App entry point (expo-router root layout):
- * 1. load fonts, 2. read saved profile/settings/session, 3. connect to the game server,
- * 4. hide the splash and render the navigation stack.
+ * 1. load fonts, 2. read saved profile/settings/session, 3. connect to the game server and
+ * start the sounds, 4. hide the splash and render the navigation stack.
  */
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -36,6 +38,13 @@ export default function RootLayout() {
   useEffect(() => {
     if (hydrated) connect(serverUrl);
   }, [hydrated, serverUrl]);
+
+  // Sounds read the saved Sound/Music settings, so they start after hydration.
+  useEffect(() => {
+    if (!hydrated) return;
+    initSounds();
+    initGameSounds();
+  }, [hydrated]);
 
   useEffect(() => {
     if (ready) void SplashScreen.hideAsync();

@@ -75,7 +75,13 @@ export default function GameScreen() {
   }
 
   return (
-    <Screen title={title} onBack={leave} scroll={view.mode === 'draw-pass'}>
+    <Screen
+      title={title}
+      onBack={leave}
+      scroll={view.mode === 'draw-pass'}
+      // Draw & Pass: the text field and Send are at the bottom of the step.
+      scrollToEndOnKeyboard={view.mode === 'draw-pass'}
+    >
       {view.mode === 'draw-guess' ? (
         <DrawGuessBoard view={view} myId={myId} players={players} />
       ) : (

@@ -8,14 +8,23 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Txt } from '../../components/ui/Txt';
+import { playSound } from '../../services/sounds';
 import { colors, ink } from '../../theme/tokens';
 
 const URGENT_SECONDS = 10;
+const TICK_SECONDS = 5;
 
-/** Countdown badge. Turns red and pulses during the last 10 seconds. */
-export function TimerPill({ seconds }: { seconds: number }) {
+/**
+ * Countdown badge. Turns red and pulses during the last 10 seconds; with `tick`, it also
+ * ticks during the last 5 (only while the player can still act).
+ */
+export function TimerPill({ seconds, tick = false }: { seconds: number; tick?: boolean }) {
   const urgent = seconds > 0 && seconds <= URGENT_SECONDS;
   const scale = useSharedValue(1);
+
+  useEffect(() => {
+    if (tick && seconds > 0 && seconds <= TICK_SECONDS) playSound('tick');
+  }, [tick, seconds]);
 
   useEffect(() => {
     scale.value = urgent

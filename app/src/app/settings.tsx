@@ -124,21 +124,56 @@ export default function SettingsScreen() {
       </InkCard>
 
       <InkCard>
-        <View style={styles.switchRow}>
-          <View style={styles.flex}>
-            <Txt variant="heading">Haptics</Txt>
-            <Txt variant="caption">Small vibrations on taps and guesses.</Txt>
-          </View>
-          <Switch
+        <View style={styles.gap}>
+          <SwitchRow
+            title="Haptics"
+            caption="Small vibrations on taps and guesses."
             value={settings.haptics}
-            onValueChange={settings.setHaptics}
-            trackColor={{ true: colors.lime, false: colors.paperLine }}
-            thumbColor={colors.ink}
-            accessibilityLabel="Haptics"
+            onChange={settings.setHaptics}
+          />
+          <SwitchRow
+            title="Sound"
+            caption="Taps, guesses and the last seconds of the timer."
+            value={settings.sound}
+            onChange={settings.setSound}
+          />
+          <SwitchRow
+            title="Music"
+            caption="Background music while you play."
+            value={settings.music}
+            onChange={settings.setMusic}
           />
         </View>
       </InkCard>
     </Screen>
+  );
+}
+
+function SwitchRow({
+  title,
+  caption,
+  value,
+  onChange,
+}: {
+  title: string;
+  caption: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <View style={styles.switchRow}>
+      <View style={styles.flex}>
+        <Txt variant="heading">{title}</Txt>
+        <Txt variant="caption">{caption}</Txt>
+      </View>
+      <Switch
+        value={value}
+        onValueChange={onChange}
+        trackColor={{ true: colors.lime, false: colors.paperLine }}
+        thumbColor={colors.ink}
+        accessibilityLabel={title}
+      />
+    </View>
   );
 }
 

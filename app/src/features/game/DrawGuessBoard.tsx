@@ -1,6 +1,6 @@
 import type { DrawGuessView } from '@drawtopia/shared';
-import { useMemo } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Keyboard, type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
 import { Avatar } from '../../components/ui/Avatar';
 import { Confetti } from '../../components/ui/Confetti';
@@ -8,6 +8,7 @@ import { InkButton } from '../../components/ui/InkButton';
 import { InkCard } from '../../components/ui/InkCard';
 import { Txt } from '../../components/ui/Txt';
 import { useCountdown } from '../../hooks/useCountdown';
+import { useKeyboardVisible } from '../../hooks/useKeyboardVisible';
 import { errorMessage } from '../../services/gameClient';
 import {
   chooseWord,
@@ -34,7 +35,17 @@ interface DrawGuessBoardProps {
   players: Map<string, PlayerInfo>;
 }
 
-/** Draw & Guess screen: the drawer draws the secret word, the others guess it. */
+const COMPACT_CANVAS_SHARE = 0.6;
+/** Space between the board's rows (styles.flex gap). */
+const BOARD_GAP = 10;
+
+/**
+ * Draw & Guess screen: the drawer draws the secret word, the others guess it.
+ * While a guesser types, the keyboard covers half the screen: the scoreboard is hidden and
+ * the canvas shrinks to fit next to the feed, so the drawing, the messages and the field all
+ * stay visible. The canvas and the field keep their place in the tree (no remount, the field
+ * keeps focus).
+ */
 export function DrawGuessBoard({ view, myId, players }: DrawGuessBoardProps) {
   const receivedAt = useGameStore((s) => s.receivedAt);
   const strokes = useGameStore((s) => s.strokes);
@@ -43,6 +54,11 @@ export function DrawGuessBoard({ view, myId, players }: DrawGuessBoardProps) {
   const feed = useGameStore((s) => s.feed);
   const seconds = useCountdown(view.remainingMs, receivedAt);
   const { brush, setBrush } = useDrawing();
+  const keyboardVisible = useKeyboardVisible();
+  // Measured while the keyboard is open, to size the canvas from the space left (see below).
+  const [board, setBoard] = useState({ width: 0, height: 0 });
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const [fieldHeight, setFieldHeight] = useState(0);
 
   const isDrawer = view.drawerId === myId;
   const drawerName = nameOf(players, view.drawerId);
@@ -53,32 +69,50 @@ export function DrawGuessBoard({ view, myId, players }: DrawGuessBoardProps) {
   );
   const confettiTrigger = myCorrectGuess ? myCorrectGuess.id + 1 : 0;
 
+  const compact = keyboardVisible && !isDrawer && view.phase === 'drawing' && !iGuessed;
+  // Square canvas: as tall as the height left between the header and the field, at most 60% of
+  // the width (the feed is beside it). Explicit sizes: a flexed row would grow to the canvas.
+  const compactSide = Math.max(
+    0,
+    Math.min(
+      board.height - headerHeight - fieldHeight - 2 * BOARD_GAP,
+      board.width * COMPACT_CANVAS_SHARE,
+    ),
+  );
+  const onBoardLayout = (e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    setBoard({ width, height });
+  };
+
+  // The guess field disappears once drawing time ends: close the keyboard with it.
+  useEffect(() => {
+    if (view.phase !== 'drawing') Keyboard.dismiss();
+  }, [view.phase]);
+
   const pick = async (word: string) => {
     const result = await chooseWord(word);
     if (!result.ok) showToast(errorMessage(result.error), 'error');
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={8}
-    >
-      <View style={styles.header}>
-        <TimerPill seconds={seconds} />
+    <View style={styles.flex} onLayout={onBoardLayout}>
+      <View style={styles.header} onLayout={(e) => setHeaderHeight(e.nativeEvent.layout.height)}>
+        <TimerPill seconds={seconds} tick={view.phase === 'drawing'} />
         <WordLine view={view} isDrawer={isDrawer} />
         <Txt variant="label">
           {view.turn}/{view.totalTurns}
         </Txt>
       </View>
 
-      <Scoreboard
-        players={players}
-        scores={view.scores}
-        drawerId={view.drawerId}
-        guessedIds={view.guessedIds}
-        myId={myId}
-      />
+      {!compact && (
+        <Scoreboard
+          players={players}
+          scores={view.scores}
+          drawerId={view.drawerId}
+          guessedIds={view.guessedIds}
+          myId={myId}
+        />
+      )}
 
       {view.phase === 'choosing' ? (
         isDrawer ? (
@@ -110,16 +144,23 @@ export function DrawGuessBoard({ view, myId, players }: DrawGuessBoardProps) {
         )
       ) : (
         <>
-          <View>
-            <DrawingCanvas
-              strokes={strokes}
-              editable={isDrawer && view.phase === 'drawing'}
-              brush={brush}
-              onStrokeEnd={sendStroke}
-              liveStrokes={isDrawer ? undefined : liveStrokes}
-              onStrokeProgress={isDrawer ? sendStrokeProgress : undefined}
-            />
-            {view.phase === 'reveal' && <RevealCard view={view} players={players} />}
+          <View style={compact ? [styles.compactRow, { height: compactSide }] : undefined}>
+            <View style={compact ? { width: compactSide } : undefined}>
+              <DrawingCanvas
+                strokes={strokes}
+                editable={isDrawer && view.phase === 'drawing'}
+                brush={brush}
+                onStrokeEnd={sendStroke}
+                liveStrokes={isDrawer ? undefined : liveStrokes}
+                onStrokeProgress={isDrawer ? sendStrokeProgress : undefined}
+              />
+              {view.phase === 'reveal' && <RevealCard view={view} players={players} />}
+            </View>
+            {compact && (
+              <View style={styles.flex}>
+                <Feed feed={feed} players={players} />
+              </View>
+            )}
           </View>
 
           {isDrawer && view.phase === 'drawing' ? (
@@ -134,8 +175,11 @@ export function DrawGuessBoard({ view, myId, players }: DrawGuessBoardProps) {
               />
             </>
           ) : (
-            <View style={styles.chat}>
-              <Feed feed={feed} players={players} />
+            <View
+              style={compact ? styles.compactField : styles.chat}
+              onLayout={(e) => compact && setFieldHeight(e.nativeEvent.layout.height)}
+            >
+              {!compact && <Feed feed={feed} players={players} />}
               {view.phase === 'drawing' &&
                 (iGuessed ? (
                   <InkCard color="lime" shadow={false}>
@@ -151,7 +195,7 @@ export function DrawGuessBoard({ view, myId, players }: DrawGuessBoardProps) {
         </>
       )}
       <Confetti trigger={confettiTrigger} />
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -207,12 +251,15 @@ function RevealCard({ view, players }: { view: DrawGuessView; players: Map<strin
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, gap: 10 },
+  flex: { flex: 1, gap: BOARD_GAP },
   header: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   word: { flex: 1, alignItems: 'center' },
   wordText: { fontFamily: fonts.sansBold, fontSize: 24, color: colors.ink, letterSpacing: 2 },
   choices: { gap: 14, paddingTop: 16 },
   waiting: { alignItems: 'center', gap: 12, paddingTop: 40 },
   chat: { flex: 1, gap: 8, minHeight: 120 },
+  compactRow: { flexDirection: 'row', gap: 8 },
+  // The field sits right above the keyboard.
+  compactField: { marginTop: 'auto' },
   reveal: { position: 'absolute', left: 16, right: 16, top: '20%' },
 });

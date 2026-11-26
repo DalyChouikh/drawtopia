@@ -1,6 +1,14 @@
 import { router } from 'expo-router';
-import type { ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { type ReactNode, useEffect, useRef } from 'react';
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Pressable,
+  ScrollView,
+  type ScrollViewInstance,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, ink, TOUCH_MIN } from '../../theme/tokens';
 import { OfflineBanner } from './OfflineBanner';
@@ -15,12 +23,37 @@ interface ScreenProps {
   onBack?: () => void;
   scroll?: boolean;
   footer?: ReactNode;
+  /** Scroll to the bottom when the keyboard opens (for screens whose text field is last). */
+  scrollToEndOnKeyboard?: boolean;
 }
 
-/** Page frame: graph paper, safe areas, optional header, offline banner. */
-export function Screen({ children, title, onBack, scroll = true, footer }: ScreenProps) {
+/**
+ * Page frame: graph paper, safe areas, optional header, offline banner.
+ * The content and footer sit above the keyboard on both platforms: KeyboardAvoidingView adds
+ * bottom padding equal to the part of it the keyboard covers. When the window has already been
+ * shrunk for the keyboard (seen in Expo Go on Android), that part is 0 and it adds nothing.
+ */
+export function Screen({
+  children,
+  title,
+  onBack,
+  scroll = true,
+  footer,
+  scrollToEndOnKeyboard = false,
+}: ScreenProps) {
+  const scrollView = useRef<ScrollViewInstance>(null);
+
+  useEffect(() => {
+    if (!scrollToEndOnKeyboard) return;
+    const sub = Keyboard.addListener('keyboardDidShow', () =>
+      scrollView.current?.scrollToEnd({ animated: true }),
+    );
+    return () => sub.remove();
+  }, [scrollToEndOnKeyboard]);
+
   const body = scroll ? (
     <ScrollView
+      ref={scrollView}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
@@ -52,8 +85,10 @@ export function Screen({ children, title, onBack, scroll = true, footer }: Scree
           </View>
         )}
         <OfflineBanner />
-        {body}
-        {footer && <View style={styles.footer}>{footer}</View>}
+        <KeyboardAvoidingView style={styles.fill} behavior="padding">
+          {body}
+          {footer && <View style={styles.footer}>{footer}</View>}
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
   );
